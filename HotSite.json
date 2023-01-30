@@ -1,0 +1,36 @@
+{
+	"name": "admin-panel",
+	"server": {
+		"globalApi": "AppAPI",
+		"serveDirectories": [
+			{
+				"route": "/",
+				"localPath": "./public/"
+			}
+		]
+	},
+	"testing": {
+		"web": {
+			"tester": "HotTesterMochaSelenium",
+			"testerAPIUrl": "http://127.0.0.1:8182"
+		}
+	},
+	"apis": {
+		"AppAPI": {
+			"jsapi": "./js/admin-panel.js",
+			"libraryName": "admin-panelWeb",
+			"apiName": "AppAPI",
+			"filepath": "./build/AppAPI.js"
+		}
+	},
+	"dependencies": {
+		"web": {
+			"jquery": "^3.6.3",
+			"@popperjs/core": "^2.11.6",
+			"bootstrap": "^5.2.3",
+			"chart.js": "^2.9.4",
+			"feather-icons": "^4.29.0"
+		},
+		"webExport": "./build/src/WebExport.js"
+	}
+}

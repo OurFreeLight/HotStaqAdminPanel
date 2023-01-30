@@ -1,0 +1,42 @@
+{
+  "name": "@hotstaq/admin-panel",
+  "description": "",
+  "version": "0.2.0",
+  "main": "build/AppAPI.js",
+  "scripts": {
+    "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
+    "dev": "hotstaq --hotsite ./HotSite.json --development-mode run --server-type web-api --web-http-port 8080",
+    "test": "hotstaq test",
+    "build": "tsc --build ./tsconfig.json",
+    "build-web": "hotstaq generate",
+    "build-web-debug": "hotstaq generate",
+    "build-doc": "hotstaq generate --generate-type openapi-3.0.0-yaml"
+  },
+  "keywords": [],
+  "author": "FreeLight, Inc",
+  "license": "MIT",
+  "dependencies": {
+    "@popperjs/core": "^2.11.6",
+    "bootstrap": "^5.2.3",
+    "chart.js": "^2.9.4",
+    "dotenv": "^10.0.0",
+    "feather-icons": "^4.29.0",
+    "hotstaq": "^0.8.0",
+    "jquery": "^3.6.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/formidable": "^1.2.4",
+    "@types/fs-extra": "^9.0.12",
+    "@types/jquery": "^3.5.16",
+    "@types/js-cookie": "^2.2.7",
+    "@types/mime-types": "^2.1.1",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^14.17.32",
+    "@types/node-fetch": "^2.6.1",
+    "@types/selenium-webdriver": "^4.1.5",
+    "@types/uuid": "^8.3.4",
+    "chokidar": "^3.5.3",
+    "ts-loader": "^7.0.5"
+  }
+}

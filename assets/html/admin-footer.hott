@@ -1,0 +1,11 @@
+<*
+	let adminPanel = await Hot.import ("@hotstaq/admin-panel");
+*>
+		</div>
+	</div>
+
+<*
+	adminPanel.outputJS ();
+*>
+  </body>
+</html>
