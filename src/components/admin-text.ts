@@ -1,4 +1,4 @@
-import { HotStaq, Hot, HotAPI, HotComponent, IHotComponent } from "hotstaq";
+import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
 
 export class AdminText extends HotComponent
 {
@@ -7,7 +7,7 @@ export class AdminText extends HotComponent
 	 */
 	field: string;
 
-	constructor (copy: IHotComponent | HotStaq, api: HotAPI)
+	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
 		super (copy, api);
 
@@ -40,5 +40,3 @@ export class AdminText extends HotComponent
 		</div>`);
 	}
 }
-
-Hot.CurrentPage.processor.addComponent (AdminText);

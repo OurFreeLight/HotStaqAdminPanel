@@ -1,4 +1,4 @@
-import { HotStaq, Hot, HotAPI, HotComponent, IHotComponent } from "hotstaq";
+import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
 import { AdminTableField } from "./admin-table-field";
 
 export class AdminTable extends HotComponent
@@ -39,7 +39,7 @@ export class AdminTable extends HotComponent
 	 */
 	rowElements: { fields: any[]; html: string; }[] = [];
 
-	constructor (copy: IHotComponent | HotStaq, api: HotAPI)
+	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
 		super (copy, api);
 
@@ -154,5 +154,3 @@ export class AdminTable extends HotComponent
 		</div>`);
 	}
 }
-
-Hot.CurrentPage.processor.addComponent (AdminTable);

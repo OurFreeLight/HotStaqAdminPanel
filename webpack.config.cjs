@@ -30,7 +30,7 @@ module.exports = {
 				}),
 			new webpack.IgnorePlugin ({
 					resourceRegExp: 
-					/HotStaq|Hot|HotFile|HotTestElement|HotPage|HotCLI|HotGenerator|HotDB|HotDBInflux|InfluxSchema|HotDBMySQL|HotDBSchema|HotHTTPServer|HotAgentRoute|HotTesterServer|HotTesterMochaSelenium|HotTestSeleniumDriver|HotIO|HotCreator|HotBuilder|HotTesterMocha|express|mysql|rimraf|graceful-fs|fs-extra/
+					/HotStaq|Hot|HotFile|HotTestElement|HotCLI|HotGenerator|HotDB|HotDBInflux|InfluxSchema|HotDBMySQL|HotDBSchema|HotHTTPServer|HotAgentRoute|HotTesterServer|HotTesterMochaSelenium|HotTestSeleniumDriver|HotIO|HotCreator|HotBuilder|HotTesterMocha|express|mysql|rimraf|graceful-fs|fs-extra/
 				})
 		],
 		resolve: {
@@ -61,6 +61,7 @@ module.exports = {
 			"js-cookie": "{}",
 			"form-data": "{}",
 			"HotIO": "{}",
+			"hotstaq": "HotStaqWeb",
 			"graceful-fs": "{}",
 			"node:path": "{}",
 			"node:buffer": "{}",

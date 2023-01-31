@@ -1,4 +1,4 @@
-import { HotStaq, Hot, HotAPI, HotComponent, IHotComponent } from "hotstaq";
+import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
 
 export class AdminEdit extends HotComponent
 {
@@ -27,7 +27,7 @@ export class AdminEdit extends HotComponent
 	 */
 	modalId: string;
 
-	constructor (copy: IHotComponent | HotStaq, api: HotAPI)
+	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
 		super (copy, api);
 
@@ -107,5 +107,3 @@ export class AdminEdit extends HotComponent
 		}]);
 	}
 }
-
-Hot.CurrentPage.processor.addComponent (AdminEdit);

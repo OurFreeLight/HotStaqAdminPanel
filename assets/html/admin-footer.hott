@@ -6,6 +6,7 @@
 
 <*
 	adminPanel.outputJS ();
+	adminPanel.outputComponents ();
 *>
   </body>
 </html>
