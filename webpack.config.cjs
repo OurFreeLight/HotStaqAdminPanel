@@ -58,8 +58,6 @@ module.exports = {
 			"validate-npm-package-name": "{}",
 			"dotenv": "{}",
 			"fs-extra": "{}",
-			"js-cookie": "{}",
-			"form-data": "{}",
 			"HotIO": "{}",
 			"hotstaq": "HotStaqWeb",
 			"graceful-fs": "{}",

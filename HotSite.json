@@ -20,7 +20,7 @@
 			"jsapi": "./js/admin-panel.js",
 			"libraryName": "admin-panelWeb",
 			"apiName": "AppAPI",
-			"filepath": "./build/AppAPI.js"
+			"filepath": "./build/src/AppAPI.js"
 		}
 	},
 	"dependencies": {
