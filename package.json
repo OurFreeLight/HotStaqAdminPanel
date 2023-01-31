@@ -8,20 +8,22 @@
     "dev": "hotstaq --hotsite ./HotSite.json --development-mode run --server-type web-api --web-http-port 8080",
     "test": "hotstaq test",
     "build": "tsc --build ./tsconfig.json",
-    "build-web": "hotstaq generate",
-    "build-web-debug": "hotstaq generate",
-    "build-doc": "hotstaq generate --generate-type openapi-3.0.0-yaml"
+    "build-web": "webpack --mode=production",
+    "build-web-debug": "webpack --mode=development",
+    "build-doc": "hotstaq generate --generate-type openapi-3.0.0-yaml",
+    "prepublishOnly": "npm run build-doc && npm run build && npm run buildweb"
   },
   "keywords": [],
   "author": "FreeLight, Inc",
   "license": "MIT",
   "dependencies": {
+    "@hotstaq/dataroute": "^0.2.0",
     "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.3",
     "chart.js": "^2.9.4",
     "dotenv": "^10.0.0",
     "feather-icons": "^4.29.0",
-    "hotstaq": "^0.8.0",
+    "hotstaq": "^0.8.2",
     "jquery": "^3.6.3"
   },
   "devDependencies": {
@@ -37,6 +39,8 @@
     "@types/selenium-webdriver": "^4.1.5",
     "@types/uuid": "^8.3.4",
     "chokidar": "^3.5.3",
-    "ts-loader": "^7.0.5"
+    "ts-loader": "^7.0.5",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   }
 }
