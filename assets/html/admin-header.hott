@@ -81,12 +81,39 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
   <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
 	<span class="navbar-toggler-icon"></span>
   </button>
-  <* await Hot.include ("@hotstaq/admin-panel/admin-search.hott"); *>
+<*
+	if (typeof (SIGNOUT_CALL) === "undefined")
+		SIGNOUT_CALL = "";
+
+	if (typeof (SIGNOUT_URL) === "undefined")
+		SIGNOUT_URL = "#";
+
+	if (typeof (SIGNOUT_TITLE) === "undefined")
+		SIGNOUT_TITLE = "Sign out";
+
+	if (typeof (TOP_FILES) === "undefined")
+		TOP_FILES = ["@hotstaq/admin-panel/admin-search.hott"];
+
+	for (let iIdx = 0; iIdx < TOP_FILES.length; iIdx++)
+	{
+		let topFile = TOP_FILES[iIdx];
+
+		await Hot.include (topFile);
+	}
+
+	if (typeof (SIGNOUT_HTML) === "undefined")
+	{
+*>
   <div class="navbar-nav">
 	<div class="nav-item text-nowrap">
-	  <a class="nav-link px-3" href="#">Sign out</a>
+	  <a class="nav-link px-3" onclick = "${SIGNOUT_CALL}" href="${SIGNOUT_URL}">${SIGNOUT_TITLE}</a>
 	</div>
   </div>
+<*
+	}
+	else
+		Hot.echo (SIGNOUT_HTML);
+*>
 </header>
 
 <div class="container-fluid">

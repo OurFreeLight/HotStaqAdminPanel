@@ -36,8 +36,13 @@ export class AdminText extends HotComponent
 
 	async output ()
 	{
+		let value: string = "";
+
+		if (this.value != null)
+			value = this.value;
+
 		return (`<div>
-			<label class="form-label">${this.inner}</label><input class="form-control" type = "text" value = "" />
+			<label class="form-label">${this.inner}</label><input class="form-control" type = "text" value = "${value}" />
 		</div>`);
 	}
 }
