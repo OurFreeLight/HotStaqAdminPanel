@@ -14,6 +14,17 @@
 				"runOn": "folderOpen"
 			},
 			"label": "Build Server"
+		},
+		{
+			"type": "shell",
+			"group": "build",
+			"runOptions": {
+				"instanceLimit": 1,
+				"runOn": "folderOpen"
+			},
+			"problemMatcher": [],
+			"label": "Build web debug",
+			"command": "npx webpack --mode=development --watch"
 		}
 	]
 }

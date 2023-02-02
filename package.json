@@ -6,10 +6,10 @@
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
     "dev": "hotstaq --hotsite ./HotSite.json --development-mode run --server-type web-api --web-http-port 8080",
-    "test": "hotstaq test",
+    "test": "hotstaq --dev --env-file .env run --server-type web-api",
     "build": "tsc --build ./tsconfig.json",
-    "build-web": "webpack --mode=production",
-    "build-web-debug": "webpack --mode=development",
+    "build-web": "hotstaq create --copy-libraries-to-location ./public/js/ app && hotstaq module build && webpack --mode=production && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --copy-to ./public/js/",
+    "build-web-debug": "hotstaq create --copy-libraries-to-location ./public/js/ app && hotstaq module build && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --copy-to ./public/js/",
     "build-doc": "hotstaq generate --generate-type openapi-3.0.0-yaml",
     "prepublishOnly": "npm run build-doc && npm run build && npm run build-web"
   },

@@ -9,10 +9,12 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
 	<meta name="description" content="">
 	<meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
 	<meta name="generator" content="Hugo 0.101.0">
-	<title>Admin Panel</title>
+	<title>${TITLE}</title>
 
 <*
 	adminPanel.outputCSS ();
+	adminPanel.outputJS ();
+	adminPanel.outputComponents ();
 *>
 
 		<!-- Favicons -->
@@ -75,7 +77,7 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
   <body>
 
 <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#">PANEL NAME HERE</a>
+  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="#">${PANEL_NAME}</a>
   <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
 	<span class="navbar-toggler-icon"></span>
   </button>
@@ -91,6 +93,8 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
   <div class="row">
 	<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
 	  <div class="position-sticky pt-3 sidebar-sticky">
-	  	<* await Hot.include ("@hotstaq/admin-panel/admin-sidebar.hott"); *>
+	  	<* await Hot.include ("@hotstaq/admin-panel/admin-sidebar.hott", {
+				SIDEBAR_ITEMS: SIDEBAR_ITEMS
+			}); *>
 	  </div>
 	</nav>

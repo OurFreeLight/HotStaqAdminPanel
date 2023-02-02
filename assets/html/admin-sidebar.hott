@@ -1,8 +1,18 @@
+<*
+    for (let iIdx = 0; iIdx < SIDEBAR_ITEMS.length; iIdx++)
+    {
+        let item = SIDEBAR_ITEMS[iIdx];
+        let url = item.url;
+        let icon = item.icon;
+        let label = item.label;
+*>
     <ul class="nav flex-column">
         <li class="nav-item">
-        <a class="nav-link" href="/">
-            <span data-feather="users" class="align-text-bottom"></span>
-            Users
+        <a class="nav-link" href="${url}">
+            ${icon}${label}
         </a>
         </li>
     </ul>
+<*
+    }
+*>

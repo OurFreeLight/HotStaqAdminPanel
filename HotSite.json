@@ -1,5 +1,5 @@
 {
-	"name": "admin-panel",
+	"name": "@hotstaq/admin-panel",
 	"server": {
 		"globalApi": "AppAPI",
 		"serveDirectories": [
@@ -12,13 +12,26 @@
 	"testing": {
 		"web": {
 			"tester": "HotTesterMochaSelenium",
-			"testerAPIUrl": "http://127.0.0.1:8182"
+			"testerAPIUrl": "http://127.0.0.1:8182",
+			"maps": [
+				"Index"
+			]
+		}
+	},
+	"routes": {
+		"/": {
+			"name": "Index",
+			"url": "./index.hott",
+			"api": "AppAPI",
+			"map": {
+				"CreateAccount": "page:Index -> Index-SignIn"
+			}
 		}
 	},
 	"apis": {
 		"AppAPI": {
-			"jsapi": "./js/admin-panel.js",
-			"libraryName": "admin-panelWeb",
+			"jsapi": "./js/AdminPanelWeb_AppAPI.js",
+			"libraryName": "AdminPanelWeb",
 			"apiName": "AppAPI",
 			"filepath": "./build/src/AppAPI.js"
 		}

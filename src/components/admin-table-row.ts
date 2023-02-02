@@ -3,7 +3,9 @@ import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
 export class AdminTableRow extends HotComponent
 {
 	/**
-	 * The table row fields.
+	 * The fields are stored in a key/value object.
+	 * 
+	 * @example { "name": "John Smith", "email": "john.smith@email.com" }
 	 */
 	fields: any[];
 
@@ -12,23 +14,17 @@ export class AdminTableRow extends HotComponent
 		super (copy, api);
 
 		this.tag = "admin-table-row";
-		/**
-		 * The fields are stored in a key/value object.
-		 * 
-		 * @example { "name": "John Smith", "email": "john.smith@email.com" }
-		 */
 		this.fields = [];
 	}
 
 	/**
 	 * Add this table row to the table
 	 */
+	// @ts-ignore
 	async onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<HTMLElement>
 	{
 		// @ts-ignore
 		parentHtmlElement.parentNode.parentNode.parentNode.hotComponent.rowElements.push ({ fields: this.fields, element: htmlElement});
-
-		return (htmlElement);
 	}
 
 	async output ()

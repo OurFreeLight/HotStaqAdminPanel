@@ -16,8 +16,8 @@ async function buildAssets (): Promise<any>
 				"@popperjs/core"],
 			html: ["./assets/html/*.*"],
 			css: ["./assets/css/*.*"],
-			js: ["./assets/js/*.*", "./build-web/AdminPanel.js"],
-			componentLibrary: "AdminPanelWeb",
+			js: ["./assets/js/*.*", "./build-web/AdminPanelComponents.js"],
+			componentLibrary: "AdminPanelComponentsWeb",
 			components: [
 				AdminButton,
 				AdminDashboard,

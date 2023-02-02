@@ -23,13 +23,12 @@ export class AdminDashboard extends HotComponent
 	/**
 	 * Add this table field to the table
 	 */
+	// @ts-ignore
 	async onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<HTMLElement>
 	{
 		// Set the base API url to use for this dashboard.
 		if (this.base != "")
 			Hot.Data.baseUrl = this.base;
-
-		return (htmlElement);
 	}
 
 	async output (): Promise<string>

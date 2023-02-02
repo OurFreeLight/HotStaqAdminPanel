@@ -3,7 +3,7 @@ import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
 export class AdminEdit extends HotComponent
 {
 	/**
-	 * The title of this dashboard.
+	 * The title of this edit modal.
 	 */
 	title: string;
 	/**
@@ -102,7 +102,8 @@ export class AdminEdit extends HotComponent
 			parentSelector: "body"
 		},
 		{
-			html:`<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" onclick = "$('#${this.modalId}').modal ('show');">Add</button>`,
+			html: `<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#${this.modalId}">Add</button>`,
+			//`<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" onclick = "$('#${this.modalId}').modal ('show');">Add</button>`,
 			parentSelector: `hot-place-here[name="buttons"]`
 		}]);
 	}

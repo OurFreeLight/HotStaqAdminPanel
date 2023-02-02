@@ -77,9 +77,9 @@ module.exports = {
 			"node:zlib": "{}"
 		},
 		output: {
-			filename: "AdminPanel.js",
+			filename: "AdminPanelComponents.js",
 			path: ppath.resolve (process.cwd (), "build-web"),
-			library: "AdminPanelWeb",
+			library: "AdminPanelComponentsWeb",
 			libraryTarget: "var"
 		}
 	};

@@ -5,7 +5,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Debug Web Server",
-			"program": "${workspaceFolder}/node_modules/hotstaq/build/src/cli.js",
+			"program": "${workspaceFolder}/build/src/cli.js",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
@@ -14,9 +14,7 @@
 				"--development-mode",
 				"--hotsite",
 				"./HotSite.json",
-				"run",
-				"--web-http-port",
-				"8080"
+				"run"
 			],
 			"env": {}
 		},
@@ -24,22 +22,15 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Debug Web/API Server",
-			"program": "${workspaceFolder}/node_modules/hotstaq/build/src/cli.js",
+			"program": "${workspaceFolder}/build/src/cli.js",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
 			"outputCapture": "std",
 			"args": [
 				"--development-mode",
-				"--hotsite",
-				"./HotSite.json",
 				"run",
-				"--server-type",
-				"web-api",
-				"--web-http-port",
-				"8080",
-				"--api-http-port",
-				"8081"
+				"--server-type", "web-api"
 			],
 			"env": {}
 		},
@@ -47,7 +38,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Debug API Server",
-			"program": "${workspaceFolder}/node_modules/hotstaq/build/src/cli.js",
+			"program": "${workspaceFolder}/build/src/cli.js",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
@@ -58,27 +49,29 @@
 				"./HotSite.json",
 				"run",
 				"--server-type",
-				"api",
-				"--api-http-port",
-				"8081"
+				"api"
 			],
 			"env": {}
 		},
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Run Web Tests",
+			"name": "Run Web-API Tests",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"program": "${workspaceFolder}/node_modules/hotstaq/build/src/cli.js",
+			"program": "${workspaceFolder}/build/src/cli.js",
 			"args": [
 				"--development-mode",
+				"--start-delay", "2000",
 				"--hotsite",
 				"./HotSite.json",
-				"test",
-				"--web-http-port",
-				"8080"
+				"--verbose",
+				"run",
+				"--tester-test-timeout", "0",
+				"--tester-open-dev-tools",
+				"--server-type", "web-api",
+				"--web-test"
 			],
 			"env": {}
 		},
@@ -92,7 +85,7 @@
 			"localRoot": "${workspaceFolder}",
 			"address": "127.0.0.1",
 			"port": 9229,
-			"remoteRoot": "/app/admin-panel"
+			"remoteRoot": "/app"
 		}
 	]
 }

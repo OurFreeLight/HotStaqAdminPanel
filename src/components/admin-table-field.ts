@@ -18,14 +18,14 @@ export class AdminTableField extends HotComponent
 	/**
 	 * Add this table field to the table
 	 */
+	// @ts-ignore
 	async onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<HTMLElement>
 	{
 		// @ts-ignore
 		let hotComponent = parentHtmlElement.parentNode.parentNode.parentNode.hotComponent;
 
-		hotComponent.addHeaderDataOnly (this, htmlElement);
-
-		return (htmlElement);
+		if (hotComponent != null)
+			hotComponent.addHeaderDataOnly (this, htmlElement);
 	}
 
 	async output ()

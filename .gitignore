@@ -2,6 +2,9 @@ build/
 build-web/
 ./app/
 
+public/hotstaq_modules/
+public/js/
+
 create-test-temp/
 temp/
 

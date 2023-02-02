@@ -9,9 +9,9 @@ export class AdminButton extends HotComponent
 		this.tag = "admin-button";
 	}
 
-    async buttonClicked ()
-    {
-    }
+	async buttonClicked ()
+	{
+	}
 
 	async output ()
 	{

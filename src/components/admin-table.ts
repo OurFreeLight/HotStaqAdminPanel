@@ -128,14 +128,13 @@ export class AdminTable extends HotComponent
 	/**
 	 * Get the list of data from the server.
 	 */
+	// @ts-ignore
 	async onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<HTMLElement>
 	{
 		setTimeout (async () =>
 			{
 				await this.refreshList ();
 			}, 50);
-
-		return (htmlElement);
 	}
 
 	async output ()

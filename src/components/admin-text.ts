@@ -18,7 +18,8 @@ export class AdminText extends HotComponent
 	/**
 	 * Corrects the placement of the text elements for modals.
 	 */
-	async onParentPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<void>
+	// @ts-ignore
+	async onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<HTMLElement>
 	{
 		let placeHereArray = parentHtmlElement.querySelectorAll (`hot-place-here[type="modal"]`);
 
