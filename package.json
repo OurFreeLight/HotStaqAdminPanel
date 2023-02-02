@@ -1,7 +1,7 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "main": "build/src/AppAPI.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
@@ -11,7 +11,7 @@
     "build-web": "hotstaq create --copy-libraries-to-location ./public/js/ app && hotstaq module build && webpack --mode=production && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --copy-to ./public/js/",
     "build-web-debug": "hotstaq create --copy-libraries-to-location ./public/js/ app && hotstaq module build && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --copy-to ./public/js/",
     "build-doc": "hotstaq generate --generate-type openapi-3.0.0-yaml",
-    "prepublishOnly": "npm run build-doc && npm run build && npm run build-web"
+    "prepublishOnly": "npm run build && npm run build-web"
   },
   "keywords": [],
   "author": "FreeLight, Inc",
