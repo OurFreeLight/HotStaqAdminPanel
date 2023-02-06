@@ -23,7 +23,7 @@
     "chart.js": "^2.9.4",
     "dotenv": "^10.0.0",
     "feather-icons": "^4.29.0",
-    "hotstaq": "^0.8.8",
+    "hotstaq": "^0.8.9",
     "jquery": "^3.6.3"
   },
   "devDependencies": {
