@@ -63,7 +63,6 @@
 			"program": "${workspaceFolder}/build/src/cli.js",
 			"args": [
 				"--development-mode",
-				"--start-delay", "2000",
 				"--hotsite",
 				"./HotSite.json",
 				"--verbose",

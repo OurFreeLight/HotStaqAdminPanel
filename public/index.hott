@@ -1,30 +1,30 @@
 <*
-    await Hot.import ("@hotstaq/admin-panel");
-    await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
-            TITLE: "Admin Panel",
-            PANEL_NAME: "Admin Panel",
-            SIDEBAR_ITEMS: [{
-                url: "/",
-                icon: `<span data-feather="users" class="align-text-bottom"></span>`,
-                label: "Users"
-            }]
-        });
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "Admin Panel",
+			PANEL_NAME: "Admin Panel",
+			SIDEBAR_ITEMS: [{
+				url: "/",
+				icon: `<span data-feather="users" class="align-text-bottom"></span>`,
+				label: "Users"
+			}]
+		});
 *>
 
 <admin-dashboard id = "users" hot-title = "Users" hot-base = "http://localhost:3243">
-    <admin-table id = "userList" hot-schema = "users">
-        <admin-table-field hot-field = "name">Name</admin-table-field>
-        <admin-table-field hot-field = "email">Email</admin-table-field>
-    </admin-table>
+	<admin-table id = "userList" hot-schema = "users">
+		<admin-table-field hot-field = "name">Name</admin-table-field>
+		<admin-table-field hot-field = "email">Email</admin-table-field>
+	</admin-table>
 </admin-dashboard>
 
 <admin-edit name = "usersModal" hot-type = "add" hot-title = "Add" hot-button_title = "Save" hot-schema = "users" hot-attached_list = "userList">
-    <admin-text hot-field = "name">Name</admin-text>
-    <admin-text hot-field = "email">Email</admin-text>
+	<admin-text hot-field = "name">Name</admin-text>
+	<admin-text hot-field = "email">Email</admin-text>
 </admin-edit>
 
 <*
-    await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
 
 	Hot.CurrentPage.createTestPath ("Index-SignIn", async (driver) =>
 		{

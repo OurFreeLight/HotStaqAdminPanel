@@ -1,4 +1,4 @@
-import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
+import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
 import { AdminTableField } from "./admin-table-field";
 
 export class AdminTable extends HotComponent
@@ -128,22 +128,23 @@ export class AdminTable extends HotComponent
 	/**
 	 * Get the list of data from the server.
 	 */
-	// @ts-ignore
-	async onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<HTMLElement>
+	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
 	{
 		setTimeout (async () =>
 			{
 				await this.refreshList ();
 			}, 50);
+
+		return (null);
 	}
 
-	async output ()
+	output (): string | HotComponentOutput[]
 	{
 		return (`
 		<div id = "${this.htmlElements[0].id}">
 			<h2>${this.title}</h2>
 			<div class="table-responsive">
-			<table class="table table-striped table-sm">
+			<table id = "${this.htmlElements[0].id}Table" class="table table-striped table-sm">
 				<thead hot-place-here = "header">
 				</thead>
 				<tbody hot-place-here = "results">

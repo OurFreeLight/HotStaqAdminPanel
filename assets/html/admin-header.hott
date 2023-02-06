@@ -15,6 +15,31 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
 	adminPanel.outputCSS ();
 	adminPanel.outputJS ();
 	adminPanel.outputComponents ();
+
+	if (typeof (HEADER_JS_FILES) !== "undefined")
+	{
+		for (let iIdx = 0; iIdx < HEADER_JS_FILES.length; iIdx++)
+		{
+			let jsFile = HEADER_JS_FILES[iIdx];
+			*>
+	<script src = "${jsFile}" type = "text/javascript"></script>
+<*
+		}
+	}
+
+	if (typeof (HEADER_CSS_FILES) !== "undefined")
+	{
+		for (let iIdx = 0; iIdx < HEADER_CSS_FILES.length; iIdx++)
+		{
+			let cssFile = HEADER_CSS_FILES[iIdx];
+			*>
+	<link href = "${cssFile}" rel="stylesheet" />
+<*
+		}
+	}
+
+	if (typeof (HEADER_HEAD_STR) !== "undefined")
+		Hot.echo (HEADER_HEAD_STR);
 *>
 
 		<!-- Favicons -->

@@ -1,4 +1,4 @@
-import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
+import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
 
 export class AdminTableField extends HotComponent
 {
@@ -18,21 +18,22 @@ export class AdminTableField extends HotComponent
 	/**
 	 * Add this table field to the table
 	 */
-	// @ts-ignore
-	async onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<HTMLElement>
+	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
 	{
 		// @ts-ignore
 		let hotComponent = parentHtmlElement.parentNode.parentNode.parentNode.hotComponent;
 
 		if (hotComponent != null)
 			hotComponent.addHeaderDataOnly (this, htmlElement);
+
+		return (null);
 	}
 
-	async output ()
+	output (): string | HotComponentOutput[]
 	{
 		return ([{
 			html: `<th>${this.inner}</th>`,
-			placeHereParent: "header"
+			documentSelector: "[hot-place-here='header']"
 		}]);
 	}
 }

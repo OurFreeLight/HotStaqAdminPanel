@@ -1,4 +1,4 @@
-import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
+import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
 
 export class AdminEdit extends HotComponent
 {
@@ -71,7 +71,7 @@ export class AdminEdit extends HotComponent
 		$(`#${this.modalId}`).modal ("hide");
 	}
 
-	async output ()
+	output (): string | HotComponentOutput[]
 	{
 		if (this.name === "")
 			throw new Error (`You must specify a name for each admin-edit element!`);
@@ -99,12 +99,12 @@ export class AdminEdit extends HotComponent
 				</div>
 			</div>
 			<!-- ${this.title} Modal End -->`,
-			parentSelector: "body"
+			documentSelector: "body"
 		},
 		{
 			html: `<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#${this.modalId}">Add</button>`,
 			//`<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" onclick = "$('#${this.modalId}').modal ('show');">Add</button>`,
-			parentSelector: `hot-place-here[name="buttons"]`
+			documentSelector: `hot-place-here[name="buttons"]`
 		}]);
 	}
 }

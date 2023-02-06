@@ -1,4 +1,4 @@
-import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
+import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
 
 export class AdminText extends HotComponent
 {
@@ -18,8 +18,7 @@ export class AdminText extends HotComponent
 	/**
 	 * Corrects the placement of the text elements for modals.
 	 */
-	// @ts-ignore
-	async onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): Promise<HTMLElement>
+	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
 	{
 		let placeHereArray = parentHtmlElement.querySelectorAll (`hot-place-here[type="modal"]`);
 
@@ -32,9 +31,11 @@ export class AdminText extends HotComponent
 			// @ts-ignore
 			parentHtmlElement.hotComponent.fieldElements[this.field] = htmlElement.querySelector ("input");
 		}
+
+		return (null);
 	}
 
-	async output ()
+	output (): string | HotComponentOutput[]
 	{
 		let value: string = "";
 

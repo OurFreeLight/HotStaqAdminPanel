@@ -9,11 +9,11 @@ export class AdminButton extends HotComponent
 		this.tag = "admin-button";
 	}
 
-	async buttonClicked ()
+	async buttonClicked (): Promise<void>
 	{
 	}
 
-	async output ()
+	output (): string
 	{
 		return (`<button id = "${this.htmlElements[0].id}" onclick = "this.buttonClicked ();"></button>`);
 	}
