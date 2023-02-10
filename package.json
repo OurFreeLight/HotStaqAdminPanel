@@ -1,12 +1,12 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "main": "build/src/AppAPI.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
     "dev": "hotstaq --hotsite ./HotSite.json --development-mode run --server-type web-api --web-http-port 8080",
-    "test": "hotstaq --dev --env-file .env run --server-type web-api",
+    "test": "hotstaq --dev --env-file .env run --server-type web-api --web-test",
     "build": "tsc --build ./tsconfig.json",
     "build-web": "hotstaq create --copy-libraries-to-location ./public/js/ app && hotstaq module build && webpack --mode=production && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --copy-to ./public/js/",
     "build-web-debug": "hotstaq create --copy-libraries-to-location ./public/js/ app && hotstaq module build && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --copy-to ./public/js/",
@@ -17,13 +17,13 @@
   "author": "FreeLight, Inc",
   "license": "MIT",
   "dependencies": {
-    "@hotstaq/dataroute": "^0.2.0",
+    "@hotstaq/dataroute": "^0.2.1",
     "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.3",
     "chart.js": "^2.9.4",
     "dotenv": "^10.0.0",
     "feather-icons": "^4.29.0",
-    "hotstaq": "^0.8.9",
+    "hotstaq": "^0.8.11",
     "jquery": "^3.6.3"
   },
   "devDependencies": {

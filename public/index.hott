@@ -28,10 +28,10 @@
 
 	Hot.CurrentPage.createTestPath ("Index-SignIn", async (driver) =>
 		{
-			/*await driver.waitForTestElement (">#usersModalModal");
+			await driver.waitForTestElement (">#usersModalModal");
 			await driver.run ([
 					[">#usersModalModal-add-button", "click"]
-				]);*/
+				]);
 			await driver.wait (15000000);
 		});
 *>
