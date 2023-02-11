@@ -33,7 +33,7 @@
 			"jsapi": "./js/AdminPanelWeb_AppAPI.js",
 			"libraryName": "AdminPanelWeb",
 			"apiName": "AppAPI",
-			"filepath": "./build/src/AppAPI.js"
+			"filepath": "./build/AppAPI.js"
 		}
 	},
 	"dependencies": {
@@ -44,6 +44,6 @@
 			"chart.js": "^2.9.4",
 			"feather-icons": "^4.29.0"
 		},
-		"webExport": "./build/src/WebExport.js"
+		"webExport": "./build/WebExport.js"
 	}
 }

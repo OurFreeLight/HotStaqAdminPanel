@@ -1,11 +1,3 @@
-import { AdminButton } from "./components/admin-button";
-import { AdminDashboard } from "./components/admin-dashboard";
-import { AdminEdit } from "./components/admin-edit";
-import { AdminTable } from "./components/admin-table";
-import { AdminTableField } from "./components/admin-table-field";
-import { AdminTableRow } from "./components/admin-table-row";
-import { AdminText } from "./components/admin-text";
-
 async function buildAssets (): Promise<any>
 {
 	return ({
@@ -19,23 +11,16 @@ async function buildAssets (): Promise<any>
 			js: ["./assets/js/*.*", "./build-web/AdminPanelComponents.js"],
 			componentLibrary: "AdminPanelComponentsWeb",
 			components: [
-				AdminButton,
-				AdminDashboard,
-				AdminEdit,
-				AdminTable,
-				AdminTableField,
-				AdminTableRow,
-				AdminText]
+				"AdminButton",
+				"AdminDashboard",
+				"AdminEdit",
+				"AdminTable",
+				"AdminTableField",
+				"AdminTableRow",
+				"AdminText"]
 		});
 }
 
 export {
-		buildAssets,
-		AdminButton,
-		AdminDashboard,
-		AdminEdit,
-		AdminTable,
-		AdminTableField,
-		AdminTableRow,
-		AdminText
-	};
+	buildAssets
+};

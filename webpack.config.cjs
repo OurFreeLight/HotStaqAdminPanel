@@ -8,7 +8,7 @@ const packageJSON = JSON.parse (packageStr);
 let packageVersion = packageJSON.version.toString ();
 
 module.exports = {
-		entry: "./src/WebExport.ts",
+		entry: "./src/index.ts",
 		devtool: "inline-source-map",
 		target: "web",
 		module: {
@@ -59,6 +59,7 @@ module.exports = {
 			"dotenv": "{}",
 			"fs-extra": "{}",
 			"HotIO": "{}",
+			"bootstrap": "bootstrap",
 			"hotstaq": "HotStaqWeb",
 			"graceful-fs": "{}",
 			"node:path": "{}",

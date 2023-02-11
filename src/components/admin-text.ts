@@ -6,6 +6,18 @@ export class AdminText extends HotComponent
 	 * The associated database field.
 	 */
 	field: string;
+	/**
+	 * The type of field. Can be:
+	 * * text
+	 * * date
+	 * 
+	 * Default: text
+	 */
+	field_type: string;
+	/**
+	 * If set to 1, this will not output the field.
+	 */
+	no_output: string;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -13,6 +25,8 @@ export class AdminText extends HotComponent
 
 		this.tag = "admin-text";
 		this.field = "";
+		this.field_type = "text";
+		this.no_output = "0";
 	}
 
 	/**
@@ -22,6 +36,8 @@ export class AdminText extends HotComponent
 	{
 		let placeHereArray = parentHtmlElement.querySelectorAll (`hot-place-here[type="modal"]`);
 
+		// Search for the input box in the modal we attached to, then store the 
+		// found input box into the fieldElements array.
 		if (placeHereArray.length > 0)
 		{
 			let placeHere = placeHereArray[0];
@@ -41,6 +57,9 @@ export class AdminText extends HotComponent
 
 		if (this.value != null)
 			value = this.value;
+
+		if (this.no_output === "1")
+			return (`<div><input class="form-control" type = "hidden" value = "${value}" /></div>`);
 
 		return (`<div>
 			<label class="form-label">${this.inner}</label><input class="form-control" type = "text" value = "${value}" />

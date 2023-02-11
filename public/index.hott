@@ -21,6 +21,7 @@
 <admin-edit name = "usersModal" hot-type = "add" hot-title = "Add" hot-button_title = "Save" hot-schema = "users" hot-attached_list = "userList">
 	<admin-text hot-field = "name">Name</admin-text>
 	<admin-text hot-field = "email">Email</admin-text>
+	<admin-text hot-no_output="1" hot-field = "registered" hot-field_type = "remove"></admin-text>
 </admin-edit>
 
 <*

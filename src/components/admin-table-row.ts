@@ -32,6 +32,9 @@ export class AdminTableRow extends HotComponent
 	{
 		let rowHtml = "";
 
+		if (this.fields.length > 0)
+			rowHtml += `<td><input type = "checkbox" /></td>`;
+
 		for (let iIdx = 0; iIdx < this.fields.length; iIdx++)
 		{
 			let fieldObj = this.fields[iIdx];

@@ -1,5 +1,9 @@
 import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
 
+import bootstrap from "bootstrap";
+
+import { AdminTable } from "./admin-table";
+
 export class AdminEdit extends HotComponent
 {
 	/**
@@ -26,6 +30,25 @@ export class AdminEdit extends HotComponent
 	 * The modal id.
 	 */
 	modalId: string;
+	/**
+	 * The bootstrap modal instance.
+	 */
+	modal: bootstrap.Modal;
+	/**
+	 * If set to true, this will close the modal when save is clicked.
+	 */
+	closeOnSave: boolean;
+	/**
+	 * The type of modal to open. Can be:
+	 * * add
+	 * * edit
+	 * * remove
+	 */
+	protected modalType: string;
+	/**
+	 * The selected fields.
+	 */
+	protected selectedFields: any[];
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -40,6 +63,130 @@ export class AdminEdit extends HotComponent
 		this.fieldElements = {};
 
 		this.modalId = "";
+		this.modal = null;
+		this.modalType = "add";
+		this.closeOnSave = true;
+		this.selectedFields = [];
+	}
+
+	/**
+	 * The event that can be called when the add button is clicked.
+	 * This is called before the add modal opens.
+	 */
+	onAddClicked: () => Promise<boolean> = null;
+
+	/**
+	 * Executes when the add button is clicked.
+	 */
+	async addClicked (): Promise<void>
+	{
+		if (this.onAddClicked != null)
+		{
+			let result = await this.onAddClicked ();
+
+			if (result === false)
+				return;
+		}
+
+		this.modalType = "add";
+
+		// Clear the values in each field.
+		for (let key in this.fieldElements)
+		{
+			let fieldElement = this.fieldElements[key];
+
+			fieldElement.value = "";
+		}
+
+		this.selectedFields = [];
+
+		bootstrap.Modal.getInstance (`#${this.modalId}`).show ();
+	}
+
+	/**
+	 * The event that can be called when the edit button is clicked.
+	 * This is called before the edit modal opens.
+	 */
+	onEditClicked: () => Promise<boolean> = null;
+
+	/**
+	 * Executes when the edit button is clicked.
+	 */
+	async editClicked (): Promise<void>
+	{
+		if (this.onEditClicked != null)
+		{
+			let result = await this.onEditClicked ();
+
+			if (result === false)
+				return;
+		}
+
+		this.modalType = "edit";
+		let attachedList = document.getElementById (this.attached_list);
+
+		// @ts-ignore
+		let hotComponent: AdminTable = attachedList.hotComponent;
+		let selectedField = hotComponent.getSelected ();
+
+		if (selectedField != null)
+		{
+			for (let key in this.fieldElements)
+			{
+				let fieldElement = this.fieldElements[key];
+
+				if (fieldElement != null)
+				{
+					// @ts-ignore
+					let value = selectedField[key];
+
+					fieldElement.value = value;
+				}
+			}
+
+			this.selectedFields = [selectedField];
+
+			bootstrap.Modal.getInstance (`#${this.modalId}`).show ();
+		}
+	}
+
+	/**
+	 * The event that can be called when the remove button is clicked.
+	 * This is called before the remove modal opens.
+	 */
+	onRemoveClicked: () => Promise<boolean> = null;
+
+	/**
+	 * Executes when the remove button is clicked.
+	 */
+	async removeClicked (): Promise<void>
+	{
+		if (this.onRemoveClicked != null)
+		{
+			let result = await this.onRemoveClicked ();
+
+			if (result === false)
+				return;
+		}
+
+		this.modalType = "remove";
+
+		// @ts-ignore
+		let hotComponent: AdminTable = attachedList.hotComponent;
+		let checkedRows = hotComponent.getCheckedRows ();
+
+		if (checkedRows != null)
+		{
+			const confirmed: boolean = confirm ("Are you sure you want to remove this item?");
+
+			if (confirmed === true)
+			{
+				await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/remove`, {
+						schema: this.schema,
+						whereFields: checkedRows
+					});
+			}
+		}
 	}
 
 	/**
@@ -52,23 +199,86 @@ export class AdminEdit extends HotComponent
 		for (let key in this.fieldElements)
 		{
 			let fieldElement = this.fieldElements[key];
-			let value = fieldElement.value;
 
-			values[key] = value;
+			if (fieldElement != null)
+			{
+				let value = fieldElement.value;
+				let fieldType: string = fieldElement.parentNode.hotComponent.field_type;
+
+				if (fieldType === "remove")
+					continue;
+
+				values[key] = value;
+			}
 		}
 
-		await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/add`, {
-				schema: this.schema,
-				fields: values
-			});
+		if (this.modalType === "add")
+		{
+			await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/add`, {
+					schema: this.schema,
+					fields: values
+				});
+		}
+
+		if (this.modalType === "edit")
+		{
+			if (this.selectedFields.length === 0)
+			{
+				alert ("No item(s) selected!");
+
+				return;
+			}
+
+			let selectedField = this.selectedFields[0];
+			let whereFields: any = {};
+
+			for (let key in selectedField)
+			{
+				let fieldElement = this.fieldElements[key];
+				let value = selectedField[key];
+
+				if (fieldElement != null)
+				{
+					let fieldType: string = fieldElement.parentNode.hotComponent.field_type;
+
+					if (fieldType === "remove")
+						continue;
+				}
+
+				whereFields[key] = value;
+			}
+
+			await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/edit`, {
+					schema: this.schema,
+					whereFields: whereFields,
+					fields: values
+				});
+		}
 
 		let attachedList = document.getElementById (this.attached_list);
-
 		// @ts-ignore
-		await attachedList.hotComponent.refreshList ();
+		let table: AdminTable = attachedList.hotComponent;
 
-		// @ts-ignore
-		$(`#${this.modalId}`).modal ("hide");
+		await table.refreshList ();
+
+		if (this.closeOnSave === true)
+		{
+			bootstrap.Modal.getInstance (`#${this.modalId}`).hide ();
+		}
+	}
+
+	/**
+	 * Get the list of data from the server.
+	 */
+	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
+	{
+		this.modal = new bootstrap.Modal ($(`#${this.modalId}`)[0], {
+				"backdrop": true,
+				"keyboard": true,
+				"focus": true
+			});
+
+		return (null);
 	}
 
 	output (): string | HotComponentOutput[]
@@ -102,8 +312,15 @@ export class AdminEdit extends HotComponent
 			documentSelector: "body"
 		},
 		{
-			html: `<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#${this.modalId}">Add</button>`,
-			//`<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" onclick = "$('#${this.modalId}').modal ('show');">Add</button>`,
+			html: `<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.addClicked ();">Add</button>`,
+			documentSelector: `hot-place-here[name="buttons"]`
+		},
+		{
+			html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.editClicked ();">Edit</button>`,
+			documentSelector: `hot-place-here[name="buttons"]`
+		},
+		{
+			html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.removeClicked ();">Remove</button>`,
 			documentSelector: `hot-place-here[name="buttons"]`
 		}]);
 	}

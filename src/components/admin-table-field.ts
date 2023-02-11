@@ -20,8 +20,8 @@ export class AdminTableField extends HotComponent
 	 */
 	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
 	{
-		// @ts-ignore
-		let hotComponent = parentHtmlElement.parentNode.parentNode.parentNode.hotComponent;
+		// @ts-ignore - looool. Add a better way to get the parent HotComponent.
+		let hotComponent = parentHtmlElement.parentNode.parentNode.parentNode.parentNode.hotComponent;
 
 		if (hotComponent != null)
 			hotComponent.addHeaderDataOnly (this, htmlElement);

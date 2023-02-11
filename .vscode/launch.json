@@ -5,7 +5,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Debug Web Server",
-			"program": "${workspaceFolder}/build/src/cli.js",
+			"program": "${workspaceFolder}/build/cli.js",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
@@ -22,13 +22,14 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Debug Web/API Server",
-			"program": "${workspaceFolder}/build/src/cli.js",
+			"program": "${workspaceFolder}/build/cli.js",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
 			"outputCapture": "std",
 			"args": [
 				"--development-mode",
+				"--verbose",
 				"run",
 				"--server-type", "web-api"
 			],
@@ -38,7 +39,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Debug API Server",
-			"program": "${workspaceFolder}/build/src/cli.js",
+			"program": "${workspaceFolder}/build/cli.js",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
@@ -60,7 +61,7 @@
 			"skipFiles": [
 				"<node_internals>/**"
 			],
-			"program": "${workspaceFolder}/build/src/cli.js",
+			"program": "${workspaceFolder}/build/cli.js",
 			"args": [
 				"--development-mode",
 				"--hotsite",
