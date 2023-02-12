@@ -171,20 +171,55 @@ export class AdminEdit extends HotComponent
 
 		this.modalType = "remove";
 
+		let attachedList = document.getElementById (this.attached_list);
 		// @ts-ignore
 		let hotComponent: AdminTable = attachedList.hotComponent;
 		let checkedRows = hotComponent.getCheckedRows ();
+		let whereFields: any[] = [];
 
-		if (checkedRows != null)
+		if (checkedRows.length > 0)
+		{
+			for (let i = 0; i < checkedRows.length; i++)
+			{
+				let checkedRow = checkedRows[i];
+				whereFields.push (checkedRow);
+			}
+		}
+
+		let selectedField = hotComponent.getSelected ();
+
+		if (selectedField != null)
+			whereFields = [selectedField];
+
+		if (whereFields.length > 0)
 		{
 			const confirmed: boolean = confirm ("Are you sure you want to remove this item?");
 
 			if (confirmed === true)
 			{
-				await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/remove`, {
-						schema: this.schema,
-						whereFields: checkedRows
-					});
+				for (let i = 0; i < whereFields.length; i++)
+				{
+					let whereField = whereFields[i];
+
+					// Remove any fields that are marked as remove.
+					for (let key in whereField)
+					{
+						let fieldType = hotComponent.getFieldType (key);
+
+						if (fieldType != null)
+						{
+							if (fieldType === "remove")
+								delete whereField[key];
+						}
+					}
+
+					await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/remove`, {
+							schema: this.schema,
+							whereFields: whereField
+						});
+				}
+		
+				await hotComponent.refreshList ();
 			}
 		}
 	}

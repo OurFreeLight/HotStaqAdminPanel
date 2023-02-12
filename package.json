@@ -1,7 +1,7 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "main": "build/index.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
@@ -17,7 +17,7 @@
   "author": "FreeLight, Inc",
   "license": "MIT",
   "dependencies": {
-    "@hotstaq/dataroute": "^0.2.2",
+    "@hotstaq/dataroute": "^0.2.4",
     "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.3",
     "chart.js": "^2.9.4",

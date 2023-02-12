@@ -15,6 +15,7 @@
 	<admin-table id = "userList" hot-schema = "users">
 		<admin-table-field hot-field = "name">Name</admin-table-field>
 		<admin-table-field hot-field = "email">Email</admin-table-field>
+		<admin-table-field hot-no_output="1" hot-field = "registered" hot-field_type = "remove"></admin-table-field>
 	</admin-table>
 </admin-dashboard>
 

@@ -9,7 +9,7 @@ export class AdminText extends HotComponent
 	/**
 	 * The type of field. Can be:
 	 * * text
-	 * * date
+	 * * remove
 	 * 
 	 * Default: text
 	 */

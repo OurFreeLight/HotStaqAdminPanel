@@ -91,6 +91,22 @@ export class AdminTable extends HotComponent
 	}
 
 	/**
+	 * Get the field type of a field.
+	 */
+	getFieldType (fieldName: string): string
+	{
+		if (this.headerElements[fieldName] != null)
+		{
+			let hotComponent: AdminTableField = this.headerElements[fieldName].hotComponent;
+
+			if (hotComponent != null)
+				return (hotComponent.field_type);
+		}
+
+		return (null);
+	}
+
+	/**
 	 * Executes this event when a row is selected. If this returns false, the row will not be selected.
 	 */
 	onSelectedRow: (rowIndex: number) => Promise<boolean> = null;
@@ -234,11 +250,21 @@ export class AdminTable extends HotComponent
 
 		for (let iIdx = 0; iIdx < this.headerIndicies.length; iIdx++)
 		{
+			// @ts-ignore - @fixme I messed this up, will fix.
 			let key = this.headerIndicies[iIdx];
 			let value = fields[key];
 
 			if (this.headerElements[key] != null)
-				rowStr += `<td data-index = "${index}">${value}</td>`;
+			{
+				// @ts-ignore - @fixme I messed this up, will fix.
+				let fieldType: string = this.getFieldType (key);
+
+				if (fieldType == null)
+					fieldType = "text";
+
+				if (fieldType !== "remove")
+					rowStr += `<td data-index = "${index}">${value}</td>`;
+			}
 		}
 
 		rowStr += "</tr>";
@@ -308,6 +334,7 @@ export class AdminTable extends HotComponent
 				<tbody hot-place-here = "results">
 				</tbody>
 			</table>
+			<hot-place-here name = "afterTable"></hot-place-here>
 			</div>
 		</div>`);
 	}
