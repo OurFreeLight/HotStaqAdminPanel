@@ -25,27 +25,23 @@ export class AdminDashboard extends HotComponent
 	 */
 	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
 	{
-		// Set the base API url to use for this dashboard.
-		if (this.base != "")
-		{
-			if (Hot.Data.AdminPanel == null)
-				Hot.Data.AdminPanel = {};
+		if (Hot.Data.AdminPanel == null)
+			Hot.Data.AdminPanel = {};
 
-			if (Hot.Data.AdminPanel.baseUrl == null)
-				Hot.Data.AdminPanel.baseUrl = this.base;
+		if (Hot.Data.AdminPanel.baseUrl == null)
+			Hot.Data.AdminPanel.baseUrl = this.base;
 
-			if (Hot.Data.AdminPanel.addUrl == null)
-				Hot.Data.AdminPanel.addUrl = `${Hot.Data.AdminPanel.baseUrl}/v1/data/add`
+		if (Hot.Data.AdminPanel.addUrl == null)
+			Hot.Data.AdminPanel.addUrl = `${Hot.Data.AdminPanel.baseUrl}/v1/data/add`;
 
-			if (Hot.Data.AdminPanel.editUrl == null)
-				Hot.Data.AdminPanel.editUrl = `${Hot.Data.AdminPanel.baseUrl}/v1/data/edit`
+		if (Hot.Data.AdminPanel.editUrl == null)
+			Hot.Data.AdminPanel.editUrl = `${Hot.Data.AdminPanel.baseUrl}/v1/data/edit`;
 
-			if (Hot.Data.AdminPanel.removeUrl == null)
-				Hot.Data.AdminPanel.removeUrl = `${Hot.Data.AdminPanel.baseUrl}/v1/data/remove`
+		if (Hot.Data.AdminPanel.removeUrl == null)
+			Hot.Data.AdminPanel.removeUrl = `${Hot.Data.AdminPanel.baseUrl}/v1/data/remove`;
 
-			if (Hot.Data.AdminPanel.listUrl == null)
-				Hot.Data.AdminPanel.listUrl = `${Hot.Data.AdminPanel.baseUrl}/v1/data/list`
-		}
+		if (Hot.Data.AdminPanel.listUrl == null)
+			Hot.Data.AdminPanel.listUrl = `${Hot.Data.AdminPanel.baseUrl}/v1/data/list`;
 
 		return (null);
 	}

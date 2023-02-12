@@ -67,7 +67,7 @@ export class AdminTableField extends HotComponent
 
 		return ([{
 			html: `<th>${this.inner}</th>`,
-			documentSelector: "[hot-place-here='header']"
+			placeHereParent: "header"
 		}]);
 	}
 }

@@ -49,7 +49,7 @@ export class AdminTableRow extends HotComponent
 
 		return ([{
 			html: `<tr>${rowHtml}</tr>`,
-			documentSelector: "[hot-place-here='results']"
+			placeHereParent: "results"
 		}]);
 	}
 }
