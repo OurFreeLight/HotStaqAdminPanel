@@ -213,7 +213,9 @@ export class AdminEdit extends HotComponent
 						}
 					}
 
-					await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/remove`, {
+					let removeUrl: string = Hot.Data.AdminPanel.removeUrl;
+
+					await Hot.jsonRequest (removeUrl, {
 							schema: this.schema,
 							whereFields: whereField
 						});
@@ -249,7 +251,9 @@ export class AdminEdit extends HotComponent
 
 		if (this.modalType === "add")
 		{
-			await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/add`, {
+			let addUrl: string = Hot.Data.AdminPanel.addUrl;
+
+			await Hot.jsonRequest (addUrl, {
 					schema: this.schema,
 					fields: values
 				});
@@ -283,7 +287,9 @@ export class AdminEdit extends HotComponent
 				whereFields[key] = value;
 			}
 
-			await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/edit`, {
+			let editUrl: string = Hot.Data.AdminPanel.editUrl;
+
+			await Hot.jsonRequest (editUrl, {
 					schema: this.schema,
 					whereFields: whereFields,
 					fields: values

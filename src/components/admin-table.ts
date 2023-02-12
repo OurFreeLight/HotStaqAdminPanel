@@ -292,7 +292,9 @@ export class AdminTable extends HotComponent
 	 */
 	async refreshList ()
 	{
-		let list = await Hot.jsonRequest (`${Hot.Data.baseUrl}/v1/data/list`, {
+		let listUrl: string = Hot.Data.AdminPanel.listUrl;
+
+		let list = await Hot.jsonRequest (listUrl, {
 				schema: this.schema
 			});
 
