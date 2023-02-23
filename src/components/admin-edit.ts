@@ -361,7 +361,7 @@ export class AdminEdit extends HotComponent
 			documentSelector: `hot-place-here[name="buttons"]`
 		},
 		{
-			html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.removeClicked ();">Remove</button>`,
+			html: `<button id = "${this.modalId}-remove-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.removeClicked ();">Remove</button>`,
 			documentSelector: `hot-place-here[name="buttons"]`
 		}]);
 	}

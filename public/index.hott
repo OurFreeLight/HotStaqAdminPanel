@@ -23,6 +23,7 @@
 	<admin-text hot-field = "name">Name</admin-text>
 	<admin-text hot-field = "email">Email</admin-text>
 	<admin-text hot-no_output="1" hot-field = "registered" hot-field_type = "remove"></admin-text>
+	<button class = "form-control" hot-place-parent = "modalBody">Test</button>
 </admin-edit>
 
 <*
