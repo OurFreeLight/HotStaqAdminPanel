@@ -19,6 +19,14 @@ export class AdminTableField extends HotComponent
 	 * If set to 1, this will not output the field.
 	 */
 	no_output: string;
+	/**
+	 * The oninput event is fired when an item is about to be placed into the table.
+	 */
+	oninput: (item: any) => any;
+	/**
+	 * The output to display.
+	 */
+	onoutput: (index: number, value: string) => string;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -28,6 +36,8 @@ export class AdminTableField extends HotComponent
 		this.field = 0;
 		this.field_type = "text";
 		this.no_output = "0";
+		this.oninput = null;
+		this.onoutput = null;
 	}
 
 	/**

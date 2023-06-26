@@ -11,18 +11,24 @@ export class AdminTable extends HotComponent
 	 * The attached schema.
 	 */
 	schema: string;
-	/**
-	 * The headers are stored in a key/value object.
-	 * 
-	 * @example { "name": "<th>Name</th>", "email": "<th>Email</th>" }
-	 */
-	headerElements: { [name: string]: any; } = {};
-	/**
-	 * The header indicies are stored in a key/value object.
-	 * 
-	 * @example console.log (this.headerIndicies["name"]); // Outputs 0
-	 */
-	headerIndicies: number[];
+	headers: {
+		/**
+		 * The stored header fields.
+		 */
+		fields: { [name: string]: AdminTableField; };
+		/**
+		 * The headers are stored in a key/value object.
+		 * 
+		 * @example { "name": "<th>Name</th>", "email": "<th>Email</th>" }
+		 */
+		elements: { [name: string]: any; };
+		/**
+		 * The header indicies are stored in a key/value object.
+		 * 
+		 * @example console.log (this.headerIndicies["name"]); // Outputs 0
+		 */
+		indicies: number[];
+	};
 	/**
 	 * The row elements are stored in an array with key/value fields and it's attached html element.
 	 * 
@@ -48,6 +54,24 @@ export class AdminTable extends HotComponent
 	 * The most recently selected row index. The index maps to the rowElements array.
 	 */
 	protected selected: number;
+	/**
+	 * The list data to use for this table.
+	 */
+	listdata: string;
+	/**
+	 * The list url to use for this table. Hot.Data.AdminPanel.listUrl will not be used in this case.
+	 */
+	listurl: string;
+	/**
+	 * If set to true, each row will have a checkbox.
+	 * @default true
+	 */
+	checkbox: boolean;
+	/**
+	 * Executes this event when a row is selected. The potential item to be selected 
+	 * will also be passed. If this returns false, the row will not be selected.
+	 */
+	onselectedrow: (rowIndex: number, item: any[]) => Promise<boolean>;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -56,10 +80,17 @@ export class AdminTable extends HotComponent
 		this.tag = "admin-table";
 		this.title = "";
 		this.schema = "";
-		this.headerElements = {};
-		this.headerIndicies = [];
+		this.headers = {
+				fields: {},
+				elements: {},
+				indicies: []
+			};
 		this.rowElements = [];
 		//this.selectedRows = [];
+		this.listdata = "";
+		this.listurl = "";
+		this.checkbox = true;
+		this.onselectedrow = null;
 		this.selected = -1;
 	}
 
@@ -70,11 +101,11 @@ export class AdminTable extends HotComponent
 	{
 		let header = this.htmlElements[0].getElementsByTagName ("thead")[0];
 
-		if (this.headerIndicies.length < 1)
-			this.headerIndicies.push (null);
+		if (this.headers.indicies.length < 1)
+			this.headers.indicies.push (null);
 
 		// @ts-ignore
-		this.headerIndicies.push (tableFieldElement.hotComponent.field);
+		this.headers.indicies.push (tableFieldElement.hotComponent.field);
 		header.appendChild (tableFieldElement);
 	}
 
@@ -83,11 +114,12 @@ export class AdminTable extends HotComponent
 	 */
 	addHeaderDataOnly (tableField: AdminTableField, htmlElement: HTMLElement)
 	{
-		if (this.headerIndicies.length < 1)
-			this.headerIndicies.push (null);
+		if (this.headers.indicies.length < 1)
+			this.headers.indicies.push (null);
 
-		this.headerIndicies.push (tableField.field);
-		this.headerElements[tableField.field] = htmlElement;
+		this.headers.indicies.push (tableField.field);
+		this.headers.fields[tableField.field] = tableField;
+		this.headers.elements[tableField.field] = htmlElement;
 	}
 
 	/**
@@ -95,9 +127,9 @@ export class AdminTable extends HotComponent
 	 */
 	getFieldType (fieldName: string): string
 	{
-		if (this.headerElements[fieldName] != null)
+		if (this.headers.elements[fieldName] != null)
 		{
-			let hotComponent: AdminTableField = this.headerElements[fieldName].hotComponent;
+			let hotComponent: AdminTableField = this.headers.elements[fieldName].hotComponent;
 
 			if (hotComponent != null)
 				return (hotComponent.field_type);
@@ -107,18 +139,21 @@ export class AdminTable extends HotComponent
 	}
 
 	/**
-	 * Executes this event when a row is selected. If this returns false, the row will not be selected.
-	 */
-	onSelectedRow: (rowIndex: number) => Promise<boolean> = null;
-
-	/**
 	 * Executes when a row is selected.
 	 */
 	async selectRow (htmlElement: HTMLElement, rowIndex: number): Promise<void>
 	{
-		if (this.onSelectedRow != null)
+		if (this.onselectedrow != null)
 		{
-			let result = await this.onSelectedRow (rowIndex);
+			if (typeof (this.onselectedrow) === "string")
+				this.onselectedrow = (<(rowIndex: number, item: any[]) => Promise<boolean>>new Function (this.onselectedrow));
+
+			let item: any[] = null;
+
+			if (this.rowElements[rowIndex] != null)
+				item = this.rowElements[rowIndex].fields;
+
+			let result = await this.onselectedrow (rowIndex, item);
 
 			if (result === false)
 				return;
@@ -246,15 +281,41 @@ export class AdminTable extends HotComponent
 		let index: number = this.rowElements.length;
 		let rowStr = `<tr onclick = "this.parentNode.parentNode.parentNode.parentNode.hotComponent.selectRow (this, ${index});">`;
 
-		rowStr += `<td><input type = "checkbox" /></td>`;
+		if (typeof (this.checkbox) === "string")
+			this.checkbox = HotStaq.parseBoolean (this.checkbox);
 
-		for (let iIdx = 0; iIdx < this.headerIndicies.length; iIdx++)
+		if (this.checkbox === true)
+			rowStr += `<td><input type = "checkbox" /></td>`;
+
+		for (let iIdx = 0; iIdx < this.headers.indicies.length; iIdx++)
 		{
 			// @ts-ignore - @fixme I messed this up, will fix.
-			let key = this.headerIndicies[iIdx];
-			let value = fields[key];
+			let key: string = this.headers.indicies[iIdx];
 
-			if (this.headerElements[key] != null)
+			if (key == null)
+				continue;
+
+			// @ts-ignore
+			let value = fields[key];
+			// For each . in key we need to get the next object.
+			let keyParts: string[] = key.split (".");
+			
+			if (keyParts.length > 1)
+			{
+				// @ts-ignore
+				let tempValue: any = fields[keyParts[0]];
+
+				for (let iIdx = 1; iIdx < keyParts.length; iIdx++)
+				{
+					const part: string = keyParts[iIdx];
+
+					tempValue = tempValue[part];
+				}
+
+				value = tempValue;
+			}
+
+			if (this.headers.elements[key] != null)
 			{
 				// @ts-ignore - @fixme I messed this up, will fix.
 				let fieldType: string = this.getFieldType (key);
@@ -263,7 +324,34 @@ export class AdminTable extends HotComponent
 					fieldType = "text";
 
 				if (fieldType !== "remove")
-					rowStr += `<td data-index = "${index}">${value}</td>`;
+				{
+					const orgField = this.headers.fields[key];
+					let defaultOutput: boolean = true;
+
+					if (orgField != null)
+					{
+						if (orgField.oninput != null)
+						{
+							if (typeof (orgField.oninput) === "string")
+								this.headers.fields[key].oninput = (<(item: any) => any>new Function (orgField.oninput));
+
+							value = orgField.oninput (value);
+						}
+
+						if (orgField.onoutput != null)
+						{
+							if (typeof (orgField.onoutput) === "string")
+								this.headers.fields[key].onoutput = (<(index: number, value: string) => string>new Function (orgField.onoutput));
+
+							defaultOutput = false;
+							const newOutput: string = orgField.onoutput (index, value);
+							rowStr += newOutput;
+						}
+					}
+
+					if (defaultOutput === true)
+						rowStr += `<td data-index = "${index}">${value}</td>`;
+				}
 			}
 		}
 
@@ -292,11 +380,26 @@ export class AdminTable extends HotComponent
 	 */
 	async refreshList ()
 	{
-		let listUrl: string = Hot.Data.AdminPanel.listUrl;
+		let list = null;
 
-		let list = await Hot.jsonRequest (listUrl, {
-				schema: this.schema
-			});
+		if (this.listdata !== "")
+		{
+			if (typeof (this.listdata) === "string")
+				this.listdata = JSON.parse (this.listdata);
+
+			list = this.listdata;
+		}
+		else
+		{
+			let listUrl: string = Hot.Data.AdminPanel.listUrl;
+
+			if (this.listurl !== "")
+				listUrl = this.listurl;
+
+			list = await Hot.jsonRequest (listUrl, {
+					schema: this.schema
+				});
+		}
 
 		this.clearRows ();
 
@@ -323,6 +426,11 @@ export class AdminTable extends HotComponent
 
 	output (): string | HotComponentOutput[]
 	{
+		let emptyCheckboxHeader: string = "";
+
+		if (this.checkbox === true)
+			emptyCheckboxHeader = "<th></th>";
+
 		return (`
 		<div id = "${this.htmlElements[0].id}">
 			<h2>${this.title}</h2>
@@ -330,7 +438,7 @@ export class AdminTable extends HotComponent
 			<table id = "${this.htmlElements[0].id}Table" class="table table-striped table-sm">
 				<thead>
 					<tr hot-place-here = "header">
-						<th></th>
+						${emptyCheckboxHeader}
 					</tr>
 				</thead>
 				<tbody hot-place-here = "results">
