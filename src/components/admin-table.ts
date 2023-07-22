@@ -55,9 +55,9 @@ export class AdminTable extends HotComponent
 	 */
 	protected selected: number;
 	/**
-	 * The list data to use for this table.
+	 * The list function to execute to retrieve data.
 	 */
-	listdata: string;
+	onlist: () => Promise<any[]>;;
 	/**
 	 * The list url to use for this table. Hot.Data.AdminPanel.listUrl will not be used in this case.
 	 */
@@ -87,7 +87,7 @@ export class AdminTable extends HotComponent
 			};
 		this.rowElements = [];
 		//this.selectedRows = [];
-		this.listdata = "";
+		this.onlist = null;
 		this.listurl = "";
 		this.checkbox = true;
 		this.onselectedrow = null;
@@ -286,6 +286,8 @@ export class AdminTable extends HotComponent
 
 		if (this.checkbox === true)
 			rowStr += `<td><input type = "checkbox" /></td>`;
+		else
+			rowStr += `<td></td>`;
 
 		for (let iIdx = 0; iIdx < this.headers.indicies.length; iIdx++)
 		{
@@ -370,6 +372,8 @@ export class AdminTable extends HotComponent
 	 */
 	async clearRows ()
 	{
+		this.rowElements = [];
+
 		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
 
 		tbody.innerHTML = "";
@@ -382,12 +386,12 @@ export class AdminTable extends HotComponent
 	{
 		let list = null;
 
-		if (this.listdata !== "")
+		if (this.onlist != null)
 		{
-			if (typeof (this.listdata) === "string")
-				this.listdata = JSON.parse (this.listdata);
+			if (typeof (this.onlist) === "string")
+				this.onlist = (<() => Promise<any[]>>new Function (this.onlist));
 
-			list = this.listdata;
+			list = await this.onlist ();
 		}
 		else
 		{
@@ -426,10 +430,7 @@ export class AdminTable extends HotComponent
 
 	output (): string | HotComponentOutput[]
 	{
-		let emptyCheckboxHeader: string = "";
-
-		if (this.checkbox === true)
-			emptyCheckboxHeader = "<th></th>";
+		let emptyCheckboxHeader: string = "<th></th>";
 
 		return (`
 		<div id = "${this.htmlElements[0].id}">

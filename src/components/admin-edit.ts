@@ -23,13 +23,13 @@ export class AdminEdit extends HotComponent
 	 */
 	schema: string;
 	/**
-	 * The field elements in the edit modal.
-	 */
-	fieldElements: { [name: string]: any; };
-	/**
 	 * The modal id.
 	 */
 	modalId: string;
+	/**
+	 * The hot-class attribute to pass to add to the modal's classes.
+	 */
+	class: string;
 	/**
 	 * The bootstrap modal instance.
 	 */
@@ -49,6 +49,18 @@ export class AdminEdit extends HotComponent
 	 * The selected fields.
 	 */
 	protected selectedFields: any[];
+	/**
+	 * What to execute when the save button is clicked.
+	 */
+	onsave: (modalType: string, values: any, selectedFields: any[]) => Promise<void>;
+	/**
+	 * What to execute when the edit button is clicked.
+	 */
+	onedit: (modalType: string, selectedFields: any[]) => Promise<boolean>;
+	/**
+	 * What to execute when the delete button is clicked.
+	 */
+	ondelete: (selectedField: any) => Promise<void>;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -60,13 +72,38 @@ export class AdminEdit extends HotComponent
 		this.attached_list = "";
 		this.schema = "";
 
-		this.fieldElements = {};
-
 		this.modalId = "";
+		this.class = "";
 		this.modal = null;
 		this.modalType = "add";
 		this.closeOnSave = true;
 		this.selectedFields = [];
+		this.onsave = null;
+		this.onedit = null;
+		this.ondelete = null;
+	}
+
+	/**
+	 * Process the hot fields.
+	 */
+	async processHotFields (onField: (htmlElement: Element, field: { name: string; type: string; }) => Promise<void>): Promise<void>
+	{
+		const elms = this.htmlElements[1].querySelectorAll ("[hot-field]");
+
+		for (let iIdx = 0; iIdx < elms.length; iIdx++)
+		{
+			const elm = elms[iIdx];
+			const field = $(elm).attr ("hot-field");
+			let fieldType = $(elm).attr ("hot-field-type");
+
+			if ((fieldType == null) || (fieldType === ""))
+				fieldType = "text";
+
+			// @ts-ignore
+			elm.fieldType = fieldType;
+
+			await onField (elm, { name: field, type: fieldType });
+		}
 	}
 
 	/**
@@ -90,13 +127,10 @@ export class AdminEdit extends HotComponent
 
 		this.modalType = "add";
 
-		// Clear the values in each field.
-		for (let key in this.fieldElements)
-		{
-			let fieldElement = this.fieldElements[key];
-
-			fieldElement.value = "";
-		}
+		await this.processHotFields (async (htmlElement: Element, field: { name: string; type: string; }) =>
+			{
+				$(htmlElement).val ("");
+			});
 
 		this.selectedFields = [];
 
@@ -131,20 +165,30 @@ export class AdminEdit extends HotComponent
 
 		if (selectedField != null)
 		{
-			for (let key in this.fieldElements)
-			{
-				let fieldElement = this.fieldElements[key];
-
-				if (fieldElement != null)
+			await this.processHotFields (async (htmlElement: Element, field: { name: string; type: string; }) =>
 				{
 					// @ts-ignore
-					let value = selectedField[key];
+					const value = selectedField[field.name];
 
-					fieldElement.value = value;
-				}
-			}
+					if (value != null)
+						$(htmlElement).val (value);
+				});
 
 			this.selectedFields = [selectedField];
+
+			if (this.onedit != null)
+			{
+				if (typeof (this.onedit) === "string")
+					this.onedit = (<(modalType: string, selectedFields: any[]) => Promise<boolean>>new Function (this.onedit));
+
+				let result = await this.onedit (this.modalType, this.selectedFields);
+
+				if (result != null)
+				{
+					if (result === false)
+						return;
+				}
+			}
 
 			bootstrap.Modal.getInstance (`#${this.modalId}`).show ();
 		}
@@ -213,12 +257,22 @@ export class AdminEdit extends HotComponent
 						}
 					}
 
-					let removeUrl: string = Hot.Data.AdminPanel.removeUrl;
+					if (this.ondelete != null)
+					{
+						if (typeof (this.ondelete) === "string")
+							this.ondelete = (<(selectedField: any) => Promise<void>>new Function (this.ondelete));
 
-					await Hot.jsonRequest (removeUrl, {
-							schema: this.schema,
-							whereFields: whereField
-						});
+						await this.ondelete (whereField);
+					}
+					else
+					{
+						let removeUrl: string = Hot.Data.AdminPanel.removeUrl;
+
+						await Hot.jsonRequest (removeUrl, {
+								schema: this.schema,
+								whereFields: whereField
+							});
+					}
 				}
 		
 				await hotComponent.refreshList ();
@@ -233,67 +287,60 @@ export class AdminEdit extends HotComponent
 	{
 		let values: any = {};
 
-		for (let key in this.fieldElements)
-		{
-			let fieldElement = this.fieldElements[key];
-
-			if (fieldElement != null)
+		await this.processHotFields (async (htmlElement: Element, field: { name: string; type: string; }) =>
 			{
-				let value = fieldElement.value;
-				let fieldType: string = fieldElement.parentNode.hotComponent.field_type;
+				if (field.type === "remove")
+					return;
 
-				if (fieldType === "remove")
-					continue;
+				values[field.name] = $(htmlElement).val ();
+			});
 
-				values[key] = value;
-			}
-		}
-
-		if (this.modalType === "add")
+		if (this.onsave != null)
 		{
-			let addUrl: string = Hot.Data.AdminPanel.addUrl;
+			if (typeof (this.onsave) === "string")
+				this.onsave = (<(modalType: string, values: any, selectedFields: any[]) => Promise<void>>new Function (this.onsave));
 
-			await Hot.jsonRequest (addUrl, {
-					schema: this.schema,
-					fields: values
-				});
+			await this.onsave (this.modalType, values, this.selectedFields);
 		}
-
-		if (this.modalType === "edit")
+		else
 		{
-			if (this.selectedFields.length === 0)
+			if (this.modalType === "add")
 			{
-				alert ("No item(s) selected!");
+				let addUrl: string = Hot.Data.AdminPanel.addUrl;
 
-				return;
+				await Hot.jsonRequest (addUrl, {
+						schema: this.schema,
+						fields: values
+					});
 			}
 
-			let selectedField = this.selectedFields[0];
-			let whereFields: any = {};
-
-			for (let key in selectedField)
+			if (this.modalType === "edit")
 			{
-				let fieldElement = this.fieldElements[key];
-				let value = selectedField[key];
-
-				if (fieldElement != null)
+				if (this.selectedFields.length === 0)
 				{
-					let fieldType: string = fieldElement.parentNode.hotComponent.field_type;
+					alert ("No item(s) selected!");
 
-					if (fieldType === "remove")
-						continue;
+					return;
 				}
 
-				whereFields[key] = value;
+				let whereFields: any = {};
+
+				await this.processHotFields (async (htmlElement: Element, field: { name: string; type: string; }) =>
+					{
+						if (field.type === "remove")
+							return;
+
+						whereFields[field.name] = $(htmlElement).val ();
+					});
+
+				let editUrl: string = Hot.Data.AdminPanel.editUrl;
+
+				await Hot.jsonRequest (editUrl, {
+						schema: this.schema,
+						whereFields: whereFields,
+						fields: values
+					});
 			}
-
-			let editUrl: string = Hot.Data.AdminPanel.editUrl;
-
-			await Hot.jsonRequest (editUrl, {
-					schema: this.schema,
-					whereFields: whereFields,
-					fields: values
-				});
 		}
 
 		let attachedList = document.getElementById (this.attached_list);
@@ -332,7 +379,7 @@ export class AdminEdit extends HotComponent
 		return ([{
 			html: `
 			<!-- ${this.title} Modal Start -->
-			<div class="modal fade" id="${this.modalId}" tabindex="-1" aria-labelledby="${this.name}ModalLabel" aria-hidden="true">
+			<div class="modal fade ${this.class}" id="${this.modalId}" tabindex="-1" aria-labelledby="${this.name}ModalLabel" aria-hidden="true">
 				<div class="modal-dialog">
 					<div class="modal-content">
 					<div class="modal-header">

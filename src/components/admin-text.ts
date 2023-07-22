@@ -3,30 +3,22 @@ import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq"
 export class AdminText extends HotComponent
 {
 	/**
-	 * The associated database field.
-	 */
-	field: string;
-	/**
-	 * The type of field. Can be:
-	 * * text
-	 * * remove
-	 * 
-	 * Default: text
-	 */
-	field_type: string;
-	/**
 	 * If set to 1, this will not output the field.
 	 */
 	no_output: string;
+	/**
+	 * The classes to set for the input.
+	 * @default "form-control"
+	 */
+	class: string;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
 		super (copy, api);
 
 		this.tag = "admin-text";
-		this.field = "";
-		this.field_type = "text";
 		this.no_output = "0";
+		this.class = "form-control"
 	}
 
 	/**
@@ -59,10 +51,17 @@ export class AdminText extends HotComponent
 			value = this.value;
 
 		if (this.no_output === "1")
-			return (`<div><input class="form-control" type = "hidden" value = "${value}" /></div>`);
+			return (`<div><input class="${this.class}" type = "hidden" value = "${value}" /></div>`);
+
+		const field = this.htmlElements[0].getAttribute ("hot-field");
+		let field_type = this.htmlElements[0].getAttribute ("hot-field-type");
+
+		if (field_type == null)
+			field_type = "text";
 
 		return (`<div>
-			<label class="form-label">${this.inner}</label><input class="form-control" type = "text" value = "${value}" />
+			<label class="form-label">${this.inner}</label>
+			<input class="${this.class}" type = "text" hot-field = "${field}" hot-field-type = "${field_type}" value = "${value}" />
 		</div>`);
 	}
 }
