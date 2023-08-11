@@ -27,9 +27,6 @@
 // 			let placeHere = placeHereArray[0];
 // 			parentHtmlElement.removeChild (htmlElement);
 // 			placeHere.appendChild (htmlElement);
-
-// 			// @ts-ignore
-// 			parentHtmlElement.hotComponent.fieldElements[this.field] = htmlElement.querySelector ("input");
 // 		}
 
 // 		return (null);

@@ -68,7 +68,7 @@ export class AdminEdit extends HotComponent
 
 		this.tag = "admin-edit";
 		this.title = "";
-		this.button_title = "";
+		this.button_title = "Save";
 		this.attached_list = "";
 		this.schema = "";
 

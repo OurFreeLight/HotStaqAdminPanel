@@ -28,16 +28,11 @@ export class AdminText extends HotComponent
 	{
 		let placeHereArray = parentHtmlElement.querySelectorAll (`hot-place-here[type="modal"]`);
 
-		// Search for the input box in the modal we attached to, then store the 
-		// found input box into the fieldElements array.
 		if (placeHereArray.length > 0)
 		{
 			let placeHere = placeHereArray[0];
 			parentHtmlElement.removeChild (htmlElement);
 			placeHere.appendChild (htmlElement);
-
-			// @ts-ignore
-			parentHtmlElement.hotComponent.fieldElements[this.field] = htmlElement.querySelector ("input");
 		}
 
 		return (null);
