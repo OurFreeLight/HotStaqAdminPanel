@@ -1,0 +1,52 @@
+name: Publish Package
+
+on:
+  workflow_run:
+    workflows: 
+      - test
+    types:
+      - completed
+
+jobs:
+  on-success:
+    runs-on: ubuntu-22.04
+    environment: ${{ github.ref }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up environment variables
+        run: |
+          cat << EOF > ./.env
+          HTTP_PORT=3243
+          MYSQL_ROOT_PASSWORD=jlka7sw47aSD234
+          DATABASE_SERVER=localhost
+          DATABASE_PORT=3322
+          DATABASE_USERNAME=5NKVBAt7OrzrumQyQVs
+          DATABASE_PASSWORD=1BBrZbKYRUM7oiMA5oY
+          DATABASE_SCHEMA=staqapp
+          TESTING_DEVTOOLS=1
+          EOF
+          ls -lah ./.env
+
+      - name: Setup .npmrc
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+          ls -lah ./.npmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build app
+        run: npm run build
+
+      - name: Publish app
+        run: npm publish

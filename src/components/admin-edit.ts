@@ -56,6 +56,10 @@ export class AdminEdit extends HotComponent
 	/**
 	 * What to execute when the edit button is clicked.
 	 */
+	onadd: (modalType: string, selectedFields: any[]) => Promise<boolean>;
+	/**
+	 * What to execute when the edit button is clicked.
+	 */
 	onedit: (modalType: string, selectedFields: any[]) => Promise<boolean>;
 	/**
 	 * What to execute when the delete button is clicked.
@@ -127,12 +131,27 @@ export class AdminEdit extends HotComponent
 
 		this.modalType = "add";
 
-		await this.processHotFields (async (htmlElement: Element, field: { name: string; type: string; }) =>
+		await this.processHotFields (
+			async (htmlElement: Element, field: { name: string; type: string; }) =>
 			{
 				$(htmlElement).val ("");
 			});
 
 		this.selectedFields = [];
+
+		if (this.onadd != null)
+		{
+			if (typeof (this.onadd) === "string")
+				this.onadd = (<(modalType: string, selectedFields: any[]) => Promise<boolean>>new Function (this.onadd));
+
+			let result = await this.onadd (this.modalType, this.selectedFields);
+
+			if (result != null)
+			{
+				if (result === false)
+					return;
+			}
+		}
 
 		bootstrap.Modal.getInstance (`#${this.modalId}`).show ();
 	}
@@ -165,7 +184,8 @@ export class AdminEdit extends HotComponent
 
 		if (selectedField != null)
 		{
-			await this.processHotFields (async (htmlElement: Element, field: { name: string; type: string; }) =>
+			await this.processHotFields (
+				async (htmlElement: Element, field: { name: string; type: string; }) =>
 				{
 					// @ts-ignore
 					const value = selectedField[field.name];
@@ -401,15 +421,15 @@ export class AdminEdit extends HotComponent
 		},
 		{
 			html: `<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.addClicked ();">Add</button>`,
-			documentSelector: `hot-place-here[name="buttons"]`
+			documentSelector: `hot-place-here[name="dashboardHeader"]`
 		},
 		{
 			html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.editClicked ();">Edit</button>`,
-			documentSelector: `hot-place-here[name="buttons"]`
+			documentSelector: `hot-place-here[name="dashboardHeader"]`
 		},
 		{
 			html: `<button id = "${this.modalId}-remove-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.removeClicked ();">Remove</button>`,
-			documentSelector: `hot-place-here[name="buttons"]`
+			documentSelector: `hot-place-here[name="dashboardHeader"]`
 		}]);
 	}
 }

@@ -54,7 +54,7 @@ export class AdminDashboard extends HotComponent
 				<h1 class="h2">${this.title}</h1>
 				<div class="btn-toolbar mb-2 mb-md-0">
 					<div class="btn-group me-2">
-						<hot-place-here name = "buttons"></hot-place-here>
+						<hot-place-here name = "dashboardHeader"></hot-place-here>
 					</div>
 				</div>
 			</div>
