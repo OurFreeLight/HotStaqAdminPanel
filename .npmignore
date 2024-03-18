@@ -9,6 +9,8 @@ build/tests/
 client/
 tests/
 
+.npmrc
+
 create-test-temp/
 
 build-web/HotStaqTests.js

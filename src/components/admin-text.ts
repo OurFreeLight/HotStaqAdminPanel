@@ -10,7 +10,7 @@ export class AdminText extends HotComponent
 	 * The classes to set for the input.
 	 * @default "form-control"
 	 */
-	class: string;
+	css_class: string;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -18,7 +18,7 @@ export class AdminText extends HotComponent
 
 		this.tag = "admin-text";
 		this.no_output = "0";
-		this.class = "form-control"
+		this.css_class = "form-control"
 	}
 
 	/**
@@ -46,7 +46,7 @@ export class AdminText extends HotComponent
 			value = this.value;
 
 		if (this.no_output === "1")
-			return (`<div><input class="${this.class}" type = "hidden" value = "${value}" /></div>`);
+			return (`<div><input class="${this.css_class}" type = "hidden" value = "${value}" /></div>`);
 
 		const field = this.htmlElements[0].getAttribute ("hot-field");
 		let field_type = this.htmlElements[0].getAttribute ("hot-field-type");
@@ -56,7 +56,7 @@ export class AdminText extends HotComponent
 
 		return (`<div>
 			<label class="form-label">${this.inner}</label>
-			<input class="${this.class}" type = "text" hot-field = "${field}" hot-field-type = "${field_type}" value = "${value}" />
+			<input class="${this.css_class}" type = "text" hot-field = "${field}" hot-field-type = "${field_type}" value = "${value}" />
 		</div>`);
 	}
 }

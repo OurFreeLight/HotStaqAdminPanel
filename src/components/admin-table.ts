@@ -277,6 +277,12 @@ export class AdminTable extends HotComponent
 	 */
 	addRow (fields: { [name: string]: any }[])
 	{
+		if (fields == null)
+			return;
+
+		if (fields.length == 0)
+			return;
+
 		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
 		let index: number = this.rowElements.length;
 		let rowStr = `<tr onclick = "this.parentNode.parentNode.parentNode.parentNode.hotComponent.selectRow (this, ${index});">`;
