@@ -120,7 +120,8 @@ export class AdminEdit extends HotComponent
 	/**
 	 * Process the hot fields.
 	 */
-	async processHotFields (onField: (htmlElement: Element, field: { name: string; type: string; }) => Promise<void>): Promise<void>
+	async processHotFields (onField: (htmlElement: Element, 
+		field: { name: string; type: string; input: string; }) => Promise<void>): Promise<void>
 	{
 		const elms = this.htmlElements[1].querySelectorAll ("[hot-field]");
 
@@ -129,6 +130,7 @@ export class AdminEdit extends HotComponent
 			const elm = elms[iIdx];
 			const field = $(elm).attr ("hot-field");
 			let fieldType = $(elm).attr ("hot-field-type");
+			let fieldInput = $(elm).attr ("hot-field-input");
 
 			if ((fieldType == null) || (fieldType === ""))
 				fieldType = "text";
@@ -136,7 +138,7 @@ export class AdminEdit extends HotComponent
 			// @ts-ignore
 			elm.fieldType = fieldType;
 
-			await onField (elm, { name: field, type: fieldType });
+			await onField (elm, { name: field, type: fieldType, input: fieldInput });
 		}
 	}
 
@@ -220,10 +222,19 @@ export class AdminEdit extends HotComponent
 			if (selectedField != null)
 			{
 				await this.processHotFields (
-					async (htmlElement: Element, field: { name: string; type: string; }) =>
+					async (htmlElement: Element, field: { name: string; type: string; input: string; }) =>
 					{
 						// @ts-ignore
-						const value = selectedField[field.name];
+						let value = selectedField[field.name];
+
+						if (field.input != null)
+						{
+							if (field.input !== "")
+							{
+								let func = new Function (field.input);
+								value = await func.call (this, value);
+							}
+						}
 
 						if (value != null)
 							$(htmlElement).val (value);
