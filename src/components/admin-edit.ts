@@ -27,9 +27,33 @@ export class AdminEdit extends HotComponent
 	 */
 	modalId: string;
 	/**
+	 * The text for the add button.
+	 */
+	add_text: string;
+	/**
+	 * The location to put the add button.
+	 */
+	add_place_here: string;
+	/**
+	 * The text for the edit button.
+	 */
+	edit_text: string;
+	/**
+	 * The location to put the edit button.
+	 */
+	edit_place_here: string;
+	/**
+	 * The text for the remove button.
+	 */
+	remove_text: string;
+	/**
+	 * The location to put the remove button.
+	 */
+	remove_place_here: string;
+	/**
 	 * The hot-class attribute to pass to add to the modal's classes.
 	 */
-	class: string;
+	css_class: string;
 	/**
 	 * The bootstrap modal instance.
 	 */
@@ -50,9 +74,14 @@ export class AdminEdit extends HotComponent
 	 */
 	protected selectedFields: any[];
 	/**
-	 * What to execute when the save button is clicked.
+	 * What to execute when the save button is clicked. If this returns true, the modal will close.
+	 * If this returns false, the modal will not close.
 	 */
-	onsave: (modalType: string, values: any, selectedFields: any[]) => Promise<void>;
+	onsave: (modalType: string, values: any, selectedFields: any[]) => Promise<boolean>;
+	/**
+	 * What to execute when the edit button is clicked.
+	 */
+	onadd: (modalType: string, selectedFields: any[]) => Promise<boolean>;
 	/**
 	 * What to execute when the edit button is clicked.
 	 */
@@ -73,7 +102,13 @@ export class AdminEdit extends HotComponent
 		this.schema = "";
 
 		this.modalId = "";
-		this.class = "";
+		this.add_text = "Add";
+		this.add_place_here = "dashboardHeader";
+		this.edit_text = "Edit";
+		this.edit_place_here = "dashboardHeader";
+		this.remove_text = "Remove";
+		this.remove_place_here = "dashboardHeader";
+		this.css_class = "";
 		this.modal = null;
 		this.modalType = "add";
 		this.closeOnSave = true;
@@ -86,7 +121,8 @@ export class AdminEdit extends HotComponent
 	/**
 	 * Process the hot fields.
 	 */
-	async processHotFields (onField: (htmlElement: Element, field: { name: string; type: string; }) => Promise<void>): Promise<void>
+	async processHotFields (onField: (htmlElement: Element, 
+		field: { name: string; type: string; input: string; }) => Promise<void>): Promise<void>
 	{
 		const elms = this.htmlElements[1].querySelectorAll ("[hot-field]");
 
@@ -95,6 +131,7 @@ export class AdminEdit extends HotComponent
 			const elm = elms[iIdx];
 			const field = $(elm).attr ("hot-field");
 			let fieldType = $(elm).attr ("hot-field-type");
+			let fieldInput = $(elm).attr ("hot-field-input");
 
 			if ((fieldType == null) || (fieldType === ""))
 				fieldType = "text";
@@ -102,7 +139,7 @@ export class AdminEdit extends HotComponent
 			// @ts-ignore
 			elm.fieldType = fieldType;
 
-			await onField (elm, { name: field, type: fieldType });
+			await onField (elm, { name: field, type: fieldType, input: fieldInput });
 		}
 	}
 
@@ -127,12 +164,27 @@ export class AdminEdit extends HotComponent
 
 		this.modalType = "add";
 
-		await this.processHotFields (async (htmlElement: Element, field: { name: string; type: string; }) =>
+		await this.processHotFields (
+			async (htmlElement: Element, field: { name: string; type: string; }) =>
 			{
 				$(htmlElement).val ("");
 			});
 
 		this.selectedFields = [];
+
+		if (this.onadd != null)
+		{
+			if (typeof (this.onadd) === "string")
+				this.onadd = (<(modalType: string, selectedFields: any[]) => Promise<boolean>>new Function (this.onadd));
+
+			let result = await this.onadd (this.modalType, this.selectedFields);
+
+			if (result != null)
+			{
+				if (result === false)
+					return;
+			}
+		}
 
 		bootstrap.Modal.getInstance (`#${this.modalId}`).show ();
 	}
@@ -157,41 +209,57 @@ export class AdminEdit extends HotComponent
 		}
 
 		this.modalType = "edit";
-		let attachedList = document.getElementById (this.attached_list);
 
-		// @ts-ignore
-		let hotComponent: AdminTable = attachedList.hotComponent;
-		let selectedField = hotComponent.getSelected ();
+		this.selectedFields = [];
 
-		if (selectedField != null)
+		if (this.attached_list !== "")
 		{
-			await this.processHotFields (async (htmlElement: Element, field: { name: string; type: string; }) =>
-				{
-					// @ts-ignore
-					const value = selectedField[field.name];
+			let attachedList = document.getElementById (this.attached_list);
 
-					if (value != null)
-						$(htmlElement).val (value);
-				});
+			// @ts-ignore
+			let hotComponent: AdminTable = attachedList.hotComponent;
+			let selectedField = hotComponent.getSelected ();
 
-			this.selectedFields = [selectedField];
-
-			if (this.onedit != null)
+			if (selectedField != null)
 			{
-				if (typeof (this.onedit) === "string")
-					this.onedit = (<(modalType: string, selectedFields: any[]) => Promise<boolean>>new Function (this.onedit));
+				await this.processHotFields (
+					async (htmlElement: Element, field: { name: string; type: string; input: string; }) =>
+					{
+						// @ts-ignore
+						let value = selectedField[field.name];
 
-				let result = await this.onedit (this.modalType, this.selectedFields);
+						if (field.input != null)
+						{
+							if (field.input !== "")
+							{
+								let func = new Function (field.input);
+								value = await func.call (this, value);
+							}
+						}
 
-				if (result != null)
-				{
-					if (result === false)
-						return;
-				}
+						if (value != null)
+							$(htmlElement).val (value);
+					});
+
+				this.selectedFields = [selectedField];
 			}
-
-			bootstrap.Modal.getInstance (`#${this.modalId}`).show ();
 		}
+
+		if (this.onedit != null)
+		{
+			if (typeof (this.onedit) === "string")
+				this.onedit = (<(modalType: string, selectedFields: any[]) => Promise<boolean>>new Function (this.onedit));
+
+			let result = await this.onedit (this.modalType, this.selectedFields);
+
+			if (result != null)
+			{
+				if (result === false)
+					return;
+			}
+		}
+
+		bootstrap.Modal.getInstance (`#${this.modalId}`).show ();
 	}
 
 	/**
@@ -215,36 +283,41 @@ export class AdminEdit extends HotComponent
 
 		this.modalType = "remove";
 
-		let attachedList = document.getElementById (this.attached_list);
-		// @ts-ignore
-		let hotComponent: AdminTable = attachedList.hotComponent;
-		let checkedRows = hotComponent.getCheckedRows ();
 		let whereFields: any[] = [];
+		let hotComponent: AdminTable = null;
 
-		if (checkedRows.length > 0)
+		if (this.attached_list !== "")
 		{
-			for (let i = 0; i < checkedRows.length; i++)
+			let attachedList = document.getElementById (this.attached_list);
+			// @ts-ignore
+			hotComponent = attachedList.hotComponent;
+			let checkedRows = hotComponent.getCheckedRows ();
+
+			if (checkedRows.length > 0)
 			{
-				let checkedRow = checkedRows[i];
-				whereFields.push (checkedRow);
+				for (let i = 0; i < checkedRows.length; i++)
+				{
+					let checkedRow = checkedRows[i];
+					whereFields.push (checkedRow);
+				}
 			}
+
+			let selectedField = hotComponent.getSelected ();
+
+			if (selectedField != null)
+				whereFields = [selectedField];
 		}
 
-		let selectedField = hotComponent.getSelected ();
+		const confirmed: boolean = confirm ("Are you sure you want to remove this item?");
 
-		if (selectedField != null)
-			whereFields = [selectedField];
-
-		if (whereFields.length > 0)
+		if (confirmed === true)
 		{
-			const confirmed: boolean = confirm ("Are you sure you want to remove this item?");
-
-			if (confirmed === true)
+			for (let i = 0; i < whereFields.length; i++)
 			{
-				for (let i = 0; i < whereFields.length; i++)
-				{
-					let whereField = whereFields[i];
+				let whereField = whereFields[i];
 
+				if (hotComponent != null)
+				{
 					// Remove any fields that are marked as remove.
 					for (let key in whereField)
 					{
@@ -256,27 +329,48 @@ export class AdminEdit extends HotComponent
 								delete whereField[key];
 						}
 					}
-
-					if (this.ondelete != null)
-					{
-						if (typeof (this.ondelete) === "string")
-							this.ondelete = (<(selectedField: any) => Promise<void>>new Function (this.ondelete));
-
-						await this.ondelete (whereField);
-					}
-					else
-					{
-						let removeUrl: string = Hot.Data.AdminPanel.removeUrl;
-
-						await Hot.jsonRequest (removeUrl, {
-								schema: this.schema,
-								whereFields: whereField
-							});
-					}
 				}
-		
-				await hotComponent.refreshList ();
+
+				if (this.ondelete != null)
+				{
+					if (typeof (this.ondelete) === "string")
+						this.ondelete = (<(selectedField: any) => Promise<void>>new Function (this.ondelete));
+
+					await this.ondelete (whereField);
+				}
+				else
+				{
+					let removeUrl: string = Hot.Data.AdminPanel.removeUrl;
+
+					await Hot.jsonRequest (removeUrl, {
+							schema: this.schema,
+							whereFields: whereField
+						});
+				}
 			}
+
+			if (whereFields.length === 0)
+			{
+				if (this.ondelete != null)
+				{
+					if (typeof (this.ondelete) === "string")
+						this.ondelete = (<(selectedField: any) => Promise<void>>new Function (this.ondelete));
+
+					await this.ondelete (null);
+				}
+				else
+				{
+					let removeUrl: string = Hot.Data.AdminPanel.removeUrl;
+
+					await Hot.jsonRequest (removeUrl, {
+							schema: this.schema,
+							whereFields: null
+						});
+				}
+			}
+	
+			if (hotComponent != null)
+				await hotComponent.refreshList ();
 		}
 	}
 
@@ -292,15 +386,33 @@ export class AdminEdit extends HotComponent
 				if (field.type === "remove")
 					return;
 
-				values[field.name] = $(htmlElement).val ();
+				let value = $(htmlElement).val ();
+
+				if ($(htmlElement).attr ("hot-value") != null)
+					value = $(htmlElement).attr ("hot-value");
+
+				if (field.type === "array")
+				{
+					if (values[field.name] == null)
+						values[field.name] = [];
+
+					values[field.name].push (value);
+
+					return;
+				}
+
+				values[field.name] = value;
 			});
 
 		if (this.onsave != null)
 		{
 			if (typeof (this.onsave) === "string")
-				this.onsave = (<(modalType: string, values: any, selectedFields: any[]) => Promise<void>>new Function (this.onsave));
+				this.onsave = (<(modalType: string, values: any, selectedFields: any[]) => Promise<boolean>>new Function (this.onsave));
 
-			await this.onsave (this.modalType, values, this.selectedFields);
+			let result = await this.onsave (this.modalType, values, this.selectedFields);
+
+			if (result === false)
+				return;
 		}
 		else
 		{
@@ -329,8 +441,23 @@ export class AdminEdit extends HotComponent
 					{
 						if (field.type === "remove")
 							return;
-
-						whereFields[field.name] = $(htmlElement).val ();
+		
+						let value = $(htmlElement).val ();
+		
+						if ($(htmlElement).attr ("hot-value") != null)
+							value = $(htmlElement).attr ("hot-value");
+		
+						if (field.type === "array")
+						{
+							if (whereFields[field.name] == null)
+								whereFields[field.name] = [];
+		
+							whereFields[field.name].push (value);
+		
+							return;
+						}
+		
+						whereFields[field.name] = value;
 					});
 
 				let editUrl: string = Hot.Data.AdminPanel.editUrl;
@@ -343,11 +470,14 @@ export class AdminEdit extends HotComponent
 			}
 		}
 
-		let attachedList = document.getElementById (this.attached_list);
-		// @ts-ignore
-		let table: AdminTable = attachedList.hotComponent;
+		if (this.attached_list !== "")
+		{
+			let attachedList = document.getElementById (this.attached_list);
+			// @ts-ignore
+			let table: AdminTable = attachedList.hotComponent;
 
-		await table.refreshList ();
+			await table.refreshList ();
+		}
 
 		if (this.closeOnSave === true)
 		{
@@ -376,10 +506,10 @@ export class AdminEdit extends HotComponent
 
 		this.modalId = `${this.name}Modal`;
 
-		return ([{
+		let outputObj = [{
 			html: `
 			<!-- ${this.title} Modal Start -->
-			<div class="modal fade ${this.class}" id="${this.modalId}" tabindex="-1" aria-labelledby="${this.name}ModalLabel" aria-hidden="true">
+			<div class="modal fade ${this.css_class}" id="${this.modalId}" tabindex="-1" aria-labelledby="${this.name}ModalLabel" aria-hidden="true">
 				<div class="modal-dialog">
 					<div class="modal-content">
 					<div class="modal-header">
@@ -398,18 +528,32 @@ export class AdminEdit extends HotComponent
 			</div>
 			<!-- ${this.title} Modal End -->`,
 			documentSelector: "body"
-		},
+		}];
+
+		if (this.add_place_here !== "")
 		{
-			html: `<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.addClicked ();">Add</button>`,
-			documentSelector: `hot-place-here[name="buttons"]`
-		},
+			outputObj.push ({
+				html: `<button id = "${this.modalId}-add-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.addClicked ();">${this.add_text}</button>`,
+				documentSelector: `hot-place-here[name="${this.add_place_here}"]`
+			});
+		}
+
+		if (this.edit_place_here !== "")
 		{
-			html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.editClicked ();">Edit</button>`,
-			documentSelector: `hot-place-here[name="buttons"]`
-		},
+			outputObj.push ({
+				html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.editClicked ();">${this.edit_text}</button>`,
+				documentSelector: `hot-place-here[name="${this.edit_place_here}"]`
+			});
+		}
+
+		if (this.remove_place_here !== "")
 		{
-			html: `<button id = "${this.modalId}-remove-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.removeClicked ();">Remove</button>`,
-			documentSelector: `hot-place-here[name="buttons"]`
-		}]);
+			outputObj.push ({
+				html: `<button id = "${this.modalId}-remove-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.removeClicked ();">${this.remove_text}</button>`,
+				documentSelector: `hot-place-here[name="${this.remove_place_here}"]`
+			});
+		}
+
+		return (outputObj);
 	}
 }

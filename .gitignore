@@ -8,6 +8,8 @@ public/js/
 create-test-temp/
 temp/
 
+.npmrc
+
 # Logs
 logs
 *.log

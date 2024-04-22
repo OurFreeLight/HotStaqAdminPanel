@@ -3,6 +3,10 @@ import { HotStaq, Hot, HotAPI, HotComponent } from "hotstaq";
 export class AdminButton extends HotComponent
 {
 	/**
+	 * The CSS class to apply to the button.
+	 */
+	css_class: string;
+	/**
 	 * Executes when the button is clicked.
 	 */
 	onclick: (event: MouseEvent) => Promise<any>;
@@ -12,6 +16,7 @@ export class AdminButton extends HotComponent
 		super (copy, api);
 
 		this.tag = "admin-button";
+		this.css_class = "btn btn-sm btn-outline-secondary";
 		this.onclick = null;
 	}
 
@@ -46,6 +51,6 @@ export class AdminButton extends HotComponent
 
 	output (): string
 	{
-		return (`<button id = "${this.htmlElements[0].id}" onclick = "this.buttonClicked ();">${this.inner}</button>`);
+		return (`<button id = "${this.htmlElements[0].id}" class = "${this.css_class}" onclick = "this.buttonClicked ();">${this.inner}</button>`);
 	}
 }
