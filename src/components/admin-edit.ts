@@ -74,9 +74,10 @@ export class AdminEdit extends HotComponent
 	 */
 	protected selectedFields: any[];
 	/**
-	 * What to execute when the save button is clicked.
+	 * What to execute when the save button is clicked. If this returns true, the modal will close.
+	 * If this returns false, the modal will not close.
 	 */
-	onsave: (modalType: string, values: any, selectedFields: any[]) => Promise<void>;
+	onsave: (modalType: string, values: any, selectedFields: any[]) => Promise<boolean>;
 	/**
 	 * What to execute when the edit button is clicked.
 	 */
@@ -406,9 +407,12 @@ export class AdminEdit extends HotComponent
 		if (this.onsave != null)
 		{
 			if (typeof (this.onsave) === "string")
-				this.onsave = (<(modalType: string, values: any, selectedFields: any[]) => Promise<void>>new Function (this.onsave));
+				this.onsave = (<(modalType: string, values: any, selectedFields: any[]) => Promise<boolean>>new Function (this.onsave));
 
-			await this.onsave (this.modalType, values, this.selectedFields);
+			let result = await this.onsave (this.modalType, values, this.selectedFields);
+
+			if (result === false)
+				return;
 		}
 		else
 		{

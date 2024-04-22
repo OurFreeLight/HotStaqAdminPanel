@@ -388,10 +388,8 @@ export class AdminTable extends HotComponent
 	/**
 	 * Refresh the list.
 	 */
-	async refreshList ()
+	async refreshList (list: any[] = null)
 	{
-		let list = null;
-
 		if (this.onlist != null)
 		{
 			if (typeof (this.onlist) === "string")
@@ -401,23 +399,29 @@ export class AdminTable extends HotComponent
 		}
 		else
 		{
-			let listUrl: string = Hot.Data.AdminPanel.listUrl;
+			let listUrl: string = "";
 
 			if (this.listurl !== "")
 				listUrl = this.listurl;
 
-			list = await Hot.jsonRequest (listUrl, {
-					schema: this.schema
-				});
+			if (listUrl !== "")
+			{
+				list = await Hot.jsonRequest (listUrl, {
+						schema: this.schema
+					});
+			}
 		}
 
 		this.clearRows ();
 
-		for (let iIdx = 0; iIdx < list.length; iIdx++)
+		if (list != null)
 		{
-			let fields = list[iIdx];
+			for (let iIdx = 0; iIdx < list.length; iIdx++)
+			{
+				let fields = list[iIdx];
 
-			this.addRow (fields);
+				this.addRow (fields);
+			}
 		}
 	}
 
