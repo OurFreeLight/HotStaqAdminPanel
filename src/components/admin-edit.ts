@@ -152,7 +152,7 @@ export class AdminEdit extends HotComponent
 	/**
 	 * Executes when the add button is clicked.
 	 */
-	async addClicked (): Promise<void>
+	async addClicked (selectedFields: any[] = []): Promise<void>
 	{
 		if (this.onAddClicked != null)
 		{
@@ -170,7 +170,7 @@ export class AdminEdit extends HotComponent
 				$(htmlElement).val ("");
 			});
 
-		this.selectedFields = [];
+		this.selectedFields = selectedFields;
 
 		if (this.onadd != null)
 		{
@@ -198,7 +198,7 @@ export class AdminEdit extends HotComponent
 	/**
 	 * Executes when the edit button is clicked.
 	 */
-	async editClicked (): Promise<void>
+	async editClicked (selectedFields: any[] = []): Promise<void>
 	{
 		if (this.onEditClicked != null)
 		{
@@ -210,7 +210,7 @@ export class AdminEdit extends HotComponent
 
 		this.modalType = "edit";
 
-		this.selectedFields = [];
+		this.selectedFields = selectedFields;
 
 		if (this.attached_list !== "")
 		{
@@ -218,6 +218,7 @@ export class AdminEdit extends HotComponent
 
 			// @ts-ignore
 			let hotComponent: AdminTable = attachedList.hotComponent;
+			hotComponent.attachedEdit = this;
 			let selectedField = hotComponent.getSelected ();
 
 			if (selectedField != null)
@@ -291,6 +292,7 @@ export class AdminEdit extends HotComponent
 			let attachedList = document.getElementById (this.attached_list);
 			// @ts-ignore
 			hotComponent = attachedList.hotComponent;
+			hotComponent.attachedEdit = this;
 			let checkedRows = hotComponent.getCheckedRows ();
 
 			if (checkedRows.length > 0)
@@ -476,6 +478,8 @@ export class AdminEdit extends HotComponent
 			// @ts-ignore
 			let table: AdminTable = attachedList.hotComponent;
 
+			table.attachedEdit = this;
+
 			await table.refreshList ();
 		}
 
@@ -495,6 +499,20 @@ export class AdminEdit extends HotComponent
 				"keyboard": true,
 				"focus": true
 			});
+
+		/// @todo Fix this temporary hack. I dont like it.
+		setTimeout (() =>
+			{
+				if (this.attached_list !== "")
+				{
+					let attachedList = document.getElementById (this.attached_list);
+					// @ts-ignore
+					let table: AdminTable = attachedList.hotComponent;
+
+					if (table != null)
+						table.attachedEdit = this;
+				}
+			}, 50);
 
 		return (null);
 	}
