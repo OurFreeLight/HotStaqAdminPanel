@@ -1,5 +1,6 @@
 import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
 import { AdminTableField } from "./admin-table-field";
+import { AdminEdit } from "./admin-edit";
 
 export class AdminTable extends HotComponent
 {
@@ -68,10 +69,18 @@ export class AdminTable extends HotComponent
 	 */
 	checkbox: boolean;
 	/**
+	 * If set to true, a single click will allow the user to edit the row.
+	 */
+	singleclickedit: boolean;
+	/**
 	 * Executes this event when a row is selected. The potential item to be selected 
 	 * will also be passed. If this returns false, the row will not be selected.
 	 */
 	onselectedrow: (rowIndex: number, item: any[]) => Promise<boolean>;
+	/**
+	 * The attached edit form, if any.
+	 */
+	attachedEdit: AdminEdit;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -90,7 +99,9 @@ export class AdminTable extends HotComponent
 		this.onlist = null;
 		this.listurl = "";
 		this.checkbox = true;
+		this.singleclickedit = false;
 		this.onselectedrow = null;
+		this.attachedEdit = null;
 		this.selected = -1;
 	}
 
@@ -177,6 +188,15 @@ export class AdminTable extends HotComponent
 		}
 
 		this.selected = rowIndex;
+
+		if (typeof (this.singleclickedit) === "string")
+			this.singleclickedit = HotStaq.parseBoolean (this.singleclickedit);
+
+		if (this.singleclickedit === true)
+		{
+			if (this.attachedEdit != null)
+				await this.attachedEdit.editClicked ();
+		}
 
 		/*this.selectedRows = [];
 		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];

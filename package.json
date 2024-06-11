@@ -1,7 +1,7 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "main": "build/index.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
@@ -44,6 +44,6 @@
     "webpack-cli": "^5.0.1"
   },
   "peerDependencies": {
-    "hotstaq": "^0.8.36"
+    "hotstaq": "^0.8.93"
   }
 }
