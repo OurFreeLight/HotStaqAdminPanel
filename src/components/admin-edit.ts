@@ -234,7 +234,7 @@ export class AdminEdit extends HotComponent
 							if (field.input !== "")
 							{
 								let func = new Function (field.input);
-								value = await func.call (this, value);
+								value = await func.call (this, this, htmlElement, value);
 							}
 						}
 
@@ -392,6 +392,20 @@ export class AdminEdit extends HotComponent
 
 				if ($(htmlElement).attr ("hot-value") != null)
 					value = $(htmlElement).attr ("hot-value");
+
+				if ($(htmlElement).attr ("hot-field-save") != null)
+				{
+					let fieldSave = $(htmlElement).attr ("hot-field-save");
+
+					if (fieldSave != null)
+					{
+						if (fieldSave !== "")
+						{
+							let func = new Function (fieldSave);
+							value = await func.call (this, this, htmlElement, value);
+						}
+					}
+				}
 
 				if (field.type === "array")
 				{
