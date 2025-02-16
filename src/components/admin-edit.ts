@@ -196,9 +196,27 @@ export class AdminEdit extends HotComponent
 	onEditClicked: () => Promise<boolean> = null;
 
 	/**
+	 * Get the attached lists.
+	 */
+	getAttachedLists (): HTMLElement[]
+	{
+		const strs = this.attached_list.split (",");
+		const attachedLists: HTMLElement[] = [];
+
+		for (let i = 0; i < strs.length; i++)
+		{
+			const attachedList = strs[i];
+			let attachedListObj = document.getElementById (attachedList);
+			attachedLists.push (attachedListObj);
+		}
+
+		return (attachedLists);
+	}
+
+	/**
 	 * Executes when the edit button is clicked.
 	 */
-	async editClicked (selectedFields: any[] = []): Promise<void>
+	async editClicked (attachedList: AdminTable, selectedFields: any[] = []): Promise<void>
 	{
 		if (this.onEditClicked != null)
 		{
@@ -214,12 +232,8 @@ export class AdminEdit extends HotComponent
 
 		if (this.attached_list !== "")
 		{
-			let attachedList = document.getElementById (this.attached_list);
-
-			// @ts-ignore
-			let hotComponent: AdminTable = attachedList.hotComponent;
-			hotComponent.attachedEdit = this;
-			let selectedField = hotComponent.getSelected ();
+			attachedList.attachedEdit = this;
+			let selectedField = attachedList.getSelected ();
 
 			if (selectedField != null)
 			{
@@ -289,25 +303,30 @@ export class AdminEdit extends HotComponent
 
 		if (this.attached_list !== "")
 		{
-			let attachedList = document.getElementById (this.attached_list);
-			// @ts-ignore
-			hotComponent = attachedList.hotComponent;
-			hotComponent.attachedEdit = this;
-			let checkedRows = hotComponent.getCheckedRows ();
+			const attachedLists = this.getAttachedLists ();
 
-			if (checkedRows.length > 0)
+			for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
 			{
-				for (let i = 0; i < checkedRows.length; i++)
+				let attachedList = attachedLists[iIdx];
+				// @ts-ignore
+				hotComponent = attachedList.hotComponent;
+				hotComponent.attachedEdit = this;
+				let checkedRows = hotComponent.getCheckedRows ();
+
+				if (checkedRows.length > 0)
 				{
-					let checkedRow = checkedRows[i];
-					whereFields.push (checkedRow);
+					for (let i = 0; i < checkedRows.length; i++)
+					{
+						let checkedRow = checkedRows[i];
+						whereFields.push (checkedRow);
+					}
 				}
+
+				let selectedField = hotComponent.getSelected ();
+
+				if (selectedField != null)
+					whereFields = [selectedField];
 			}
-
-			let selectedField = hotComponent.getSelected ();
-
-			if (selectedField != null)
-				whereFields = [selectedField];
 		}
 
 		const confirmed: boolean = confirm ("Are you sure you want to remove this item?");
@@ -488,13 +507,18 @@ export class AdminEdit extends HotComponent
 
 		if (this.attached_list !== "")
 		{
-			let attachedList = document.getElementById (this.attached_list);
-			// @ts-ignore
-			let table: AdminTable = attachedList.hotComponent;
+			const attachedLists = this.getAttachedLists ();
 
-			table.attachedEdit = this;
+			for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
+			{
+				let attachedList = attachedLists[iIdx];
+				// @ts-ignore
+				let table: AdminTable = attachedList.hotComponent;
 
-			await table.refreshList ();
+				table.attachedEdit = this;
+
+				await table.refreshList ();
+			}
 		}
 
 		if (this.closeOnSave === true)
@@ -519,12 +543,17 @@ export class AdminEdit extends HotComponent
 			{
 				if (this.attached_list !== "")
 				{
-					let attachedList = document.getElementById (this.attached_list);
-					// @ts-ignore
-					let table: AdminTable = attachedList.hotComponent;
+					const attachedLists = this.getAttachedLists ();
+		
+					for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
+					{
+						let attachedList = attachedLists[iIdx];
+						// @ts-ignore
+						let table: AdminTable = attachedList.hotComponent;
 
-					if (table != null)
-						table.attachedEdit = this;
+						if (table != null)
+							table.attachedEdit = this;
+					}
 				}
 			}, 50);
 

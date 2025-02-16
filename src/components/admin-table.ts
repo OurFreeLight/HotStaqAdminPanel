@@ -195,7 +195,7 @@ export class AdminTable extends HotComponent
 		if (this.singleclickedit === true)
 		{
 			if (this.attachedEdit != null)
-				await this.attachedEdit.editClicked ();
+				await this.attachedEdit.editClicked (this);
 		}
 
 		/*this.selectedRows = [];
