@@ -3,9 +3,9 @@ async function buildAssets (): Promise<any>
 	return ({
 			import: ["@popperjs/core", 
 				{ name: "jquery", files: ["jquery.min.js"] }, 
-				"chart.js", 
-				"feather-icons", 
-				{ name: "bootstrap", files: ["bootstrap.min.js", "bootstrap.min.css"] }],
+				"feather-icons",
+				{ name: "bootstrap", files: ["bootstrap.min.js", "bootstrap.min.css"] }, 
+				"datatables.net-bs5"],
 			html: ["./assets/html/*.*"],
 			css: ["./assets/css/*.*"],
 			js: ["./assets/js/*.*", "./build-web/AdminPanelComponents.js"],

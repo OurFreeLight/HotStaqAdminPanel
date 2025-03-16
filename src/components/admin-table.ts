@@ -2,6 +2,11 @@ import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq"
 import { AdminTableField } from "./admin-table-field";
 import { AdminEdit } from "./admin-edit";
 
+import DataTable, { Api } from 'datatables.net-bs5';
+import 'datatables.net-colreorder-bs5';
+import 'datatables.net-scroller-bs5';
+import 'datatables.net-searchbuilder-bs5';
+
 export class AdminTable extends HotComponent
 {
 	/**
@@ -81,6 +86,10 @@ export class AdminTable extends HotComponent
 	 * The attached edit form, if any.
 	 */
 	attachedEdit: AdminEdit;
+	/**
+	 * The associated DataTable.
+	 */
+	dataTable: DataTable<any>;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -103,6 +112,7 @@ export class AdminTable extends HotComponent
 		this.onselectedrow = null;
 		this.attachedEdit = null;
 		this.selected = -1;
+		this.dataTable = null;
 	}
 
 	/**
@@ -303,17 +313,19 @@ export class AdminTable extends HotComponent
 		if (fields.length == 0)
 			return;
 
+		debugger;
 		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
 		let index: number = this.rowElements.length;
-		let rowStr = `<tr onclick = "this.parentNode.parentNode.parentNode.parentNode.hotComponent.selectRow (this, ${index});">`;
+		//let rowStr = `<tr onclick = "this.parentNode.parentNode.parentNode.parentNode.hotComponent.selectRow (this, ${index});">`;
 
 		if (typeof (this.checkbox) === "string")
 			this.checkbox = HotStaq.parseBoolean (this.checkbox);
 
-		if (this.checkbox === true)
+		/*if (this.checkbox === true)
 			rowStr += `<td><input type = "checkbox" /></td>`;
 		else
-			rowStr += `<td></td>`;
+			rowStr += `<td></td>`;*/
+		let rowsFields: any[] = [];
 
 		for (let iIdx = 0; iIdx < this.headers.indicies.length; iIdx++)
 		{
@@ -342,6 +354,14 @@ export class AdminTable extends HotComponent
 
 				value = tempValue;
 			}
+
+			let rowObj: {
+				index: number;
+				value: any;
+			} = {
+				index: null,
+				value: null
+			};
 
 			if (this.headers.elements[key] != null)
 			{
@@ -373,24 +393,35 @@ export class AdminTable extends HotComponent
 
 							defaultOutput = false;
 							const newOutput: string = orgField.onoutput (index, value);
-							rowStr += newOutput;
+							//rowStr += newOutput;
+							rowObj.index = index;
+							rowObj.value = newOutput;
 						}
 					}
 
 					if (defaultOutput === true)
-						rowStr += `<td data-index = "${index}">${value}</td>`;
+					{
+						//rowStr += `<td data-index = "${index}">${value}</td>`;
+						rowObj.index = index;
+						rowObj.value = value;
+					}
 				}
 			}
+
+			rowsFields.push (rowObj);
 		}
 
-		rowStr += "</tr>";
+debugger;
+// @ts-ignore
+		this.dataTable.row.add (rowsFields);
+		/*rowStr += "</tr>";
 
 		let newObj = HotStaq.addHtml (tbody, rowStr);
 
 		this.rowElements.push ({
 				fields: fields,
 				element: (<HTMLElement>newObj)
-			});
+			});*/
 	}
 
 	/**
@@ -452,6 +483,16 @@ export class AdminTable extends HotComponent
 	{
 		setTimeout (async () =>
 			{
+				/*const table = $(htmlElement).find("table");
+				// @ts-ignore
+				this.dataTable = new DataTable (table, {
+					processing: true,
+					colReorder: true,
+					scroller: true,
+					dom: 'Qlfrtip',
+					data: []
+				});*/
+
 				await this.refreshList ();
 			}, 50);
 

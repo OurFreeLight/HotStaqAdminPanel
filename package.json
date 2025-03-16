@@ -1,7 +1,7 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "main": "build/index.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
@@ -18,12 +18,15 @@
   "license": "MIT",
   "dependencies": {
     "@hotstaq/dataroute": "^0.2.10",
-    "@popperjs/core": "^2.11.6",
-    "bootstrap": "^5.2.3",
-    "chart.js": "^2.9.4",
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
+    "datatables.net-bs5": "^2.2.2",
+    "datatables.net-colreorder-bs5": "^2.0.4",
+    "datatables.net-scroller-bs5": "^2.4.3",
+    "datatables.net-searchbuilder-bs5": "^1.8.2",
     "dotenv": "^10.0.0",
     "feather-icons": "^4.29.0",
-    "jquery": "^3.6.3"
+    "jquery": "^3.7.1"
   },
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
@@ -45,6 +48,6 @@
     "webpack-cli": "^5.0.1"
   },
   "peerDependencies": {
-    "hotstaq": "^0.8.103"
+    "hotstaq": "^0.8.118"
   }
 }
