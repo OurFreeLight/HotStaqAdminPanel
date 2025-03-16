@@ -12,8 +12,14 @@
 *>
 
 <admin-dashboard id = "users" hot-title = "Users" hot-base = "http://localhost:3243">
-	<admin-table id = "userList" hot-schema = "users">
-		<admin-table-field hot-field = "name">Name</admin-table-field>
+	<admin-table id = "userList" 
+		hot-onlist = "<() =>
+		{
+			let users = await Hot.jsonRequest (`http://127.0.0.1:3243/v1/admins/listUsers`, {}, '');
+
+			return (users);
+		}Ra>">
+		<admin-table-field hot-field = "displayName">Name</admin-table-field>
 		<admin-table-field hot-field = "email">Email</admin-table-field>
 		<admin-table-field hot-no_output="1" hot-field = "registered" hot-field_type = "remove"></admin-table-field>
 	</admin-table>
