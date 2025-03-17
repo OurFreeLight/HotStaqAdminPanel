@@ -2,10 +2,30 @@ import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq"
 import { AdminTableField } from "./admin-table-field";
 import { AdminEdit } from "./admin-edit";
 
-import DataTable, { Api } from 'datatables.net-bs5';
-import 'datatables.net-colreorder-bs5';
-import 'datatables.net-scroller-bs5';
-import 'datatables.net-searchbuilder-bs5';
+import DataTable, { Api } from "datatables.net";
+import dt5 from 'datatables.net-bs5';
+import dtc from 'datatables.net-colreorder-bs5';
+import dts from 'datatables.net-scroller-bs5';
+import dtsb from 'datatables.net-searchbuilder-bs5';
+
+/**
+ * The properties for the list search.
+ */
+export interface IListSearchProperties
+{
+	/**
+	 * The search.
+	 */
+	search?: string;
+	/**
+	 * The start index.
+	 */
+	offset?: number;
+	/**
+	 * The length.
+	 */
+	limit?: number;
+}
 
 export class AdminTable extends HotComponent
 {
@@ -63,7 +83,7 @@ export class AdminTable extends HotComponent
 	/**
 	 * The list function to execute to retrieve data.
 	 */
-	onlist: () => Promise<any[]>;;
+	onlist: (search: IListSearchProperties) => Promise<{ length: number; data: any[]; }>;
 	/**
 	 * The list url to use for this table. Hot.Data.AdminPanel.listUrl will not be used in this case.
 	 */
@@ -89,7 +109,11 @@ export class AdminTable extends HotComponent
 	/**
 	 * The associated DataTable.
 	 */
-	dataTable: DataTable<any>;
+	dataTable: DataTable<Api>;
+	/**
+	 * Indicates if the list is refreshing.
+	 */
+	isListRefreshing: boolean;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -113,6 +137,7 @@ export class AdminTable extends HotComponent
 		this.attachedEdit = null;
 		this.selected = -1;
 		this.dataTable = null;
+		this.isListRefreshing = false;
 	}
 
 	/**
@@ -313,7 +338,6 @@ export class AdminTable extends HotComponent
 		if (fields.length == 0)
 			return;
 
-		debugger;
 		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
 		let index: number = this.rowElements.length;
 		//let rowStr = `<tr onclick = "this.parentNode.parentNode.parentNode.parentNode.hotComponent.selectRow (this, ${index});">`;
@@ -355,13 +379,7 @@ export class AdminTable extends HotComponent
 				value = tempValue;
 			}
 
-			let rowObj: {
-				index: number;
-				value: any;
-			} = {
-				index: null,
-				value: null
-			};
+			let rowObj = null;
 
 			if (this.headers.elements[key] != null)
 			{
@@ -394,16 +412,14 @@ export class AdminTable extends HotComponent
 							defaultOutput = false;
 							const newOutput: string = orgField.onoutput (index, value);
 							//rowStr += newOutput;
-							rowObj.index = index;
-							rowObj.value = newOutput;
+							rowObj = { index: index, value: newOutput };
 						}
 					}
 
 					if (defaultOutput === true)
 					{
 						//rowStr += `<td data-index = "${index}">${value}</td>`;
-						rowObj.index = index;
-						rowObj.value = value;
+						rowObj = value;
 					}
 				}
 			}
@@ -411,8 +427,7 @@ export class AdminTable extends HotComponent
 			rowsFields.push (rowObj);
 		}
 
-debugger;
-// @ts-ignore
+		// @ts-ignore
 		this.dataTable.row.add (rowsFields);
 		/*rowStr += "</tr>";
 
@@ -431,22 +446,50 @@ debugger;
 	{
 		this.rowElements = [];
 
-		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
+		/*let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
 
-		tbody.innerHTML = "";
+		tbody.innerHTML = "";*/
+		// @ts-ignore
+		this.dataTable.clear ();
 	}
 
 	/**
 	 * Refresh the list.
+	 * 
+	 * @returns The total number of rows available in the list.
 	 */
-	async refreshList (list: any[] = null)
+	async refreshList (list: { length: number; data: any[]; error?: string; } = null): Promise<number>
 	{
+		this.isListRefreshing = true;
+
+		let search: IListSearchProperties = {
+				search: "",
+				offset: 0,
+				limit: 10
+			};
+
+		if (this.dataTable != null)
+		{
+			// @ts-ignore
+			const searchStr: string = this.dataTable.search ();
+			// @ts-ignore
+			const info = this.dataTable.page.info ();
+
+			search = {
+				search: searchStr || "",
+				// @ts-ignore
+				offset: info.start || 0,
+				// @ts-ignore
+				limit: info.length || 10
+			};
+		}
+
 		if (this.onlist != null)
 		{
 			if (typeof (this.onlist) === "string")
-				this.onlist = (<() => Promise<any[]>>new Function (this.onlist));
+				this.onlist = (<(search: IListSearchProperties) => Promise<{ length: number; data: any[]; }>>new Function (this.onlist));
 
-			list = await this.onlist ();
+			list = await this.onlist (search);
 		}
 		else
 		{
@@ -458,7 +501,8 @@ debugger;
 			if (listUrl !== "")
 			{
 				list = await Hot.jsonRequest (listUrl, {
-						schema: this.schema
+						schema: this.schema,
+						search: search
 					});
 			}
 		}
@@ -467,13 +511,38 @@ debugger;
 
 		if (list != null)
 		{
-			for (let iIdx = 0; iIdx < list.length; iIdx++)
+			if (list.error != null)
 			{
-				let fields = list[iIdx];
+				console.error (`List error: ${list.error}`);
+				this.isListRefreshing = false;
+
+				return (0);
+			}
+
+			for (let iIdx = 0; iIdx < list.data.length; iIdx++)
+			{
+				let fields = list.data[iIdx];
 
 				this.addRow (fields);
 			}
 		}
+
+		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
+		$(tbody).on ('click', 'tr', function ()
+			{
+				debugger;
+				const index = this.dataTable.row (this).index ();
+				this.parentNode.parentNode.parentNode.parentNode.hotComponent.selectRow (this, index);
+			});
+
+		this.isListRefreshing = false;
+
+		let length = 0;
+
+		if (list != null)
+			length = list.length;
+
+		return (length);
 	}
 
 	/**
@@ -483,17 +552,34 @@ debugger;
 	{
 		setTimeout (async () =>
 			{
-				/*const table = $(htmlElement).find("table");
+				const table = $(htmlElement).find("table");
 				// @ts-ignore
-				this.dataTable = new DataTable (table, {
+				this.dataTable = new DataTable (table[0], {
 					processing: true,
+					serverSide: true,
 					colReorder: true,
 					scroller: true,
 					dom: 'Qlfrtip',
-					data: []
-				});*/
+					data: [],
+					ajax: async (data, callback, settings) =>
+						{
+							if (this.isListRefreshing === true)
+								return;
 
-				await this.refreshList ();
+							const maxRows = await this.refreshList ();
+
+							// @ts-ignore
+							const currentData = this.dataTable.data ().toArray ();
+
+							callback ({
+								// @ts-ignore
+								draw: data.draw,
+								recordsTotal: maxRows,
+								recordsFiltered: maxRows,
+								data: currentData
+							});
+						}
+					});
 			}, 50);
 
 		return (null);

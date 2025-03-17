@@ -18,8 +18,10 @@
   "license": "MIT",
   "dependencies": {
     "@hotstaq/dataroute": "^0.2.10",
+    "@hotstaq/userroute": "^0.6.11",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
+    "datatables.net": "^2.2.2",
     "datatables.net-bs5": "^2.2.2",
     "datatables.net-colreorder-bs5": "^2.0.4",
     "datatables.net-scroller-bs5": "^2.4.3",
