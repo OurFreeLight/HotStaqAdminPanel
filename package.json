@@ -1,7 +1,7 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "main": "build/index.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
