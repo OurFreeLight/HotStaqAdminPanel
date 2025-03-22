@@ -2,11 +2,12 @@ import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq"
 import { AdminTableField } from "./admin-table-field";
 import { AdminEdit } from "./admin-edit";
 
-import DataTable, { Api } from "datatables.net";
+import DataTable, { Api, ConfigColumns } from "datatables.net";
 import dt5 from 'datatables.net-bs5';
 import dtc from 'datatables.net-colreorder-bs5';
 import dts from 'datatables.net-scroller-bs5';
 import dtsb from 'datatables.net-searchbuilder-bs5';
+import dtsel from 'datatables.net-select-bs5';
 
 /**
  * The properties for the list search.
@@ -25,6 +26,25 @@ export interface IListSearchProperties
 	 * The length.
 	 */
 	limit?: number;
+}
+
+/**
+ * The API response that is expected to be returned.
+ */
+export interface IAPIResponse
+{
+	/**
+	 * The length of the data.
+	 */
+	length: number;
+	/**
+	 * The data to return.
+	 */
+	data: any[];
+	/**
+	 * The error message, if any.
+	 */
+	error?: string;
 }
 
 export class AdminTable extends HotComponent
@@ -83,7 +103,7 @@ export class AdminTable extends HotComponent
 	/**
 	 * The list function to execute to retrieve data.
 	 */
-	onlist: (search: IListSearchProperties) => Promise<{ length: number; data: any[]; }>;
+	onlist: (search: IListSearchProperties) => Promise<IAPIResponse>;
 	/**
 	 * The list url to use for this table. Hot.Data.AdminPanel.listUrl will not be used in this case.
 	 */
@@ -267,7 +287,10 @@ export class AdminTable extends HotComponent
 		if (index < 0)
 			return (null);
 
-		return (this.rowElements[index].fields);
+		// @ts-ignore
+		const result = this.dataTable.row(index).data();
+
+		return (result);
 	}
 
 	/**
@@ -427,8 +450,12 @@ export class AdminTable extends HotComponent
 			rowsFields.push (rowObj);
 		}
 
+		if (this.rows == null)
+			this.rows = [];
+
 		// @ts-ignore
-		this.dataTable.row.add (rowsFields);
+		//this.dataTable.row.add (rowsFields);
+		//this.rows.push (rowsFields);
 		/*rowStr += "</tr>";
 
 		let newObj = HotStaq.addHtml (tbody, rowStr);
@@ -438,6 +465,8 @@ export class AdminTable extends HotComponent
 				element: (<HTMLElement>newObj)
 			});*/
 	}
+
+	rows: any[];
 
 	/**
 	 * Clear the list of rows.
@@ -458,7 +487,7 @@ export class AdminTable extends HotComponent
 	 * 
 	 * @returns The total number of rows available in the list.
 	 */
-	async refreshList (list: { length: number; data: any[]; error?: string; } = null): Promise<number>
+	async refreshList (list: IAPIResponse = null): Promise<IAPIResponse>
 	{
 		this.isListRefreshing = true;
 
@@ -487,7 +516,7 @@ export class AdminTable extends HotComponent
 		if (this.onlist != null)
 		{
 			if (typeof (this.onlist) === "string")
-				this.onlist = (<(search: IListSearchProperties) => Promise<{ length: number; data: any[]; }>>new Function (this.onlist));
+				this.onlist = (<(search: IListSearchProperties) => Promise<IAPIResponse>>new Function (this.onlist));
 
 			list = await this.onlist (search);
 		}
@@ -516,33 +545,31 @@ export class AdminTable extends HotComponent
 				console.error (`List error: ${list.error}`);
 				this.isListRefreshing = false;
 
-				return (0);
+				return (null);
 			}
 
-			for (let iIdx = 0; iIdx < list.data.length; iIdx++)
+			/*for (let iIdx = 0; iIdx < list.data.length; iIdx++)
 			{
 				let fields = list.data[iIdx];
 
 				this.addRow (fields);
-			}
+			}*/
 		}
 
 		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
+		// @ts-ignore
+		tbody.hotComponent = this;
 		$(tbody).on ('click', 'tr', function ()
 			{
-				debugger;
-				const index = this.dataTable.row (this).index ();
-				this.parentNode.parentNode.parentNode.parentNode.hotComponent.selectRow (this, index);
+				const hotComponent: AdminTable = this.parentNode.hotComponent;
+				// @ts-ignore
+				const index = hotComponent.dataTable.row (this).index ();
+				hotComponent.selectRow (this, index);
 			});
 
 		this.isListRefreshing = false;
 
-		let length = 0;
-
-		if (list != null)
-			length = list.length;
-
-		return (length);
+		return (list);
 	}
 
 	/**
@@ -552,32 +579,70 @@ export class AdminTable extends HotComponent
 	{
 		setTimeout (async () =>
 			{
+
 				const table = $(htmlElement).find("table");
+
+				let columns: ConfigColumns[] = [];
+				$(table).find ("thead th").each (function ()
+					{
+						const text = $(this).text ();
+						const data = $(this).data ("field");
+						let dataType = $(this).data ("field-type");
+
+						if ((text == null) || (text === ""))
+							return;
+
+						if ((data == null) || (data === ""))
+							return;
+
+						if (dataType === "text")
+							dataType = "string";
+
+						columns.push({
+								title: text,
+								data: data
+							});
+					});
+
+				$(table).find ("thead").remove ();
+
 				// @ts-ignore
 				this.dataTable = new DataTable (table[0], {
 					processing: true,
 					serverSide: true,
 					colReorder: true,
 					scroller: true,
+					select: true,
 					dom: 'Qlfrtip',
+					columns: columns,
 					data: [],
 					ajax: async (data, callback, settings) =>
 						{
 							if (this.isListRefreshing === true)
 								return;
 
-							const maxRows = await this.refreshList ();
+							const currentData = await this.refreshList ();
+							const callbackObj: any = {
+									data: [],
+									recordsTotal: 0,
+									recordsFiltered: 0
+								};
 
-							// @ts-ignore
-							const currentData = this.dataTable.data ().toArray ();
+							if (! (currentData instanceof Array))
+							{
+								if (currentData.length != null)
+								{
+									callbackObj.recordsTotal = currentData.length;
+									callbackObj.recordsFiltered = currentData.length;
+								}
 
-							callback ({
-								// @ts-ignore
-								draw: data.draw,
-								recordsTotal: maxRows,
-								recordsFiltered: maxRows,
-								data: currentData
-							});
+								if (currentData.data != null)
+									callbackObj.data = currentData.data;
+							}
+							else
+								callbackObj.data = currentData;
+
+							callback (callbackObj);
 						}
 					});
 			}, 50);

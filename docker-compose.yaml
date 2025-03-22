@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   # Used just to make sure the database has started before continuing.
   init-app-database:

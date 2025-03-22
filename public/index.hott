@@ -13,7 +13,7 @@
 *>
 
 <admin-dashboard id = "users" hot-title = "Users" hot-base = "http://localhost:3243">
-	<admin-table id = "userList" 
+	<admin-table id = "userList" hot-singleclickedit = "true" 
 		hot-onlist = "<(listProps) =>
 		{
 			let users = await Hot.jsonRequest (`${baseUrl}/v1/admins/listUsers`, {
@@ -30,7 +30,8 @@
 	</admin-table>
 </admin-dashboard>
 
-<admin-edit name = "usersModal" hot-type = "add" hot-title = "Add" hot-button_title = "Save" hot-schema = "users" hot-attached_list = "userList"
+<admin-edit name = "usersModal" hot-type = "add" hot-title = "Add" hot-button_title = "Save" 
+	hot-schema = "users" hot-attached_list = "userList"
 	hot-onsave = "<(modelType, values, selectedFields) =>
 		{
 			let result = await Hot.jsonRequest (`${baseUrl}/v1/users/register`, {
@@ -47,6 +48,9 @@
 
 				return (false);
 			}
+		}Ra>"
+	hot-onedit = "<(modalType, selectedFields) =>
+		{
 		}Ra>">
 	<admin-text hot-field = "password" type = "password">Password</admin-text>
 	<admin-text hot-field = "displayName">Display Name</admin-text>

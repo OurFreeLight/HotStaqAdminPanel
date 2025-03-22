@@ -75,7 +75,13 @@ module.exports = {
 			"node:stream": "{}",
 			"node:url": "{}",
 			"node:util": "{}",
-			"node:zlib": "{}"
+			"node:zlib": "{}",
+			'datatables.net': 'DataTable',
+			'datatables.net-bs5': 'dt5',
+			'datatables.net-colreorder-bs5': 'dtc',
+			'datatables.net-scroller-bs5': 'dts',
+			'datatables.net-searchbuilder-bs5': 'dtsb',
+			'datatables.net-select-bs5': 'dtsel'
 		},
 		output: {
 			filename: "AdminPanelComponents.js",
