@@ -640,7 +640,11 @@ export class AdminTable extends HotComponent
 									callbackObj.data = currentData.data;
 							}
 							else
+							{
 								callbackObj.data = currentData;
+								callbackObj.recordsTotal = currentData.length;
+								callbackObj.recordsFiltered = currentData.length;
+							}
 
 							callback (callbackObj);
 						}
