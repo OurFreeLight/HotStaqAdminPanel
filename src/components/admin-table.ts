@@ -2,7 +2,7 @@ import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq"
 import { AdminTableField } from "./admin-table-field";
 import { AdminEdit } from "./admin-edit";
 
-import DataTable, { Api, ConfigColumns } from "datatables.net";
+import DataTable, { Api, ConfigColumns, InternalSettings } from "datatables.net";
 import dt5 from 'datatables.net-bs5';
 import dtc from 'datatables.net-colreorder-bs5';
 import dts from 'datatables.net-scroller-bs5';
@@ -616,13 +616,16 @@ export class AdminTable extends HotComponent
 					dom: 'Qlfrtip',
 					columns: columns,
 					data: [],
-					ajax: async (data, callback, settings) =>
+					ajax: async (data: object, callback: ((data: any) => void), settings: InternalSettings) =>
 						{
 							if (this.isListRefreshing === true)
 								return;
 
-							const currentData = await this.refreshList ();
+							let currentData = await this.refreshList ();
+
 							const callbackObj: any = {
+									// @ts-ignore
+									draw: data.draw,
 									data: [],
 									recordsTotal: 0,
 									recordsFiltered: 0

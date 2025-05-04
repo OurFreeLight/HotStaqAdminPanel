@@ -13,7 +13,7 @@
 *>
 
 <admin-dashboard id = "users" hot-title = "Users" hot-base = "http://localhost:3243">
-	<admin-table id = "userList" hot-singleclickedit = "true" 
+	<admin-table id = "userList" hot-singleclickedit = "true" hot-checkbox = "false" 
 		hot-onlist = "<(listProps) =>
 		{
 			let users = await Hot.jsonRequest (`${baseUrl}/v1/admins/listUsers`, {
