@@ -198,7 +198,7 @@ export class AdminEdit extends HotComponent
 	/**
 	 * Get the attached lists.
 	 */
-	getAttachedLists (): HTMLElement[]
+	getAttachedHTMLLists (): HTMLElement[]
 	{
 		const strs = this.attached_list.split (",");
 		const attachedLists: HTMLElement[] = [];
@@ -214,9 +214,29 @@ export class AdminEdit extends HotComponent
 	}
 
 	/**
+	 * Get the attached lists.
+	 */
+	getAttachedLists (): HotComponent[]
+	{
+		const attachedLists = this.getAttachedHTMLLists ();
+		let attachedListObjs = [];
+
+		for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
+		{
+			let attachedList = attachedLists[iIdx];
+			// @ts-ignore
+			const hotComponent = attachedList.hotComponent;
+
+			attachedListObjs.push (hotComponent);
+		}
+
+		return (attachedListObjs);
+	}
+
+	/**
 	 * Executes when the edit button is clicked.
 	 */
-	async editClicked (attachedList: AdminTable, selectedFields: any[] = []): Promise<void>
+	async editClicked (selectedFields: any[] = []): Promise<void>
 	{
 		if (this.onEditClicked != null)
 		{
@@ -232,31 +252,39 @@ export class AdminEdit extends HotComponent
 
 		if (this.attached_list !== "")
 		{
-			attachedList.attachedEdit = this;
-			let selectedField = attachedList.getSelected ();
+			const attachedLists = this.getAttachedLists ();
 
-			if (selectedField != null)
+			for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
 			{
-				await this.processHotFields (
-					async (htmlElement: Element, field: { name: string; type: string; input: string; }) =>
-					{
-						// @ts-ignore
-						let value = selectedField[field.name];
+				let attachedList = attachedLists[iIdx];
+				let table: AdminTable = (<AdminTable>attachedList);
 
-						if (field.input != null)
+				table.attachedEdit = this;
+				let selectedField = table.getSelected ();
+
+				if (selectedField != null)
+				{
+					await this.processHotFields (
+						async (htmlElement: Element, field: { name: string; type: string; input: string; }) =>
 						{
-							if (field.input !== "")
+							// @ts-ignore
+							let value = selectedField[field.name];
+
+							if (field.input != null)
 							{
-								let func = new Function (field.input);
-								value = await func.call (this, this, htmlElement, value);
+								if (field.input !== "")
+								{
+									let func = new Function (field.input);
+									value = await func.call (this, this, htmlElement, value);
+								}
 							}
-						}
 
-						if (value != null)
-							$(htmlElement).val (value);
-					});
+							if (value != null)
+								$(htmlElement).val (value);
+						});
 
-				this.selectedFields = [selectedField];
+					this.selectedFields = [selectedField];
+				}
 			}
 		}
 
@@ -308,8 +336,8 @@ export class AdminEdit extends HotComponent
 			for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
 			{
 				let attachedList = attachedLists[iIdx];
-				// @ts-ignore
-				hotComponent = attachedList.hotComponent;
+				hotComponent = (<AdminTable>attachedList);
+
 				hotComponent.attachedEdit = this;
 				let checkedRows = hotComponent.getCheckedRows ();
 
@@ -512,8 +540,7 @@ export class AdminEdit extends HotComponent
 			for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
 			{
 				let attachedList = attachedLists[iIdx];
-				// @ts-ignore
-				let table: AdminTable = attachedList.hotComponent;
+				let table: AdminTable = (<AdminTable>attachedList);
 
 				table.attachedEdit = this;
 
@@ -548,8 +575,7 @@ export class AdminEdit extends HotComponent
 					for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
 					{
 						let attachedList = attachedLists[iIdx];
-						// @ts-ignore
-						let table: AdminTable = attachedList.hotComponent;
+						let table: AdminTable = (<AdminTable>attachedList);
 
 						if (table != null)
 							table.attachedEdit = this;

@@ -209,22 +209,6 @@ export class AdminTable extends HotComponent
 	 */
 	async selectRow (htmlElement: HTMLElement, rowIndex: number): Promise<void>
 	{
-		if (this.onselectedrow != null)
-		{
-			if (typeof (this.onselectedrow) === "string")
-				this.onselectedrow = (<(rowIndex: number, item: any[]) => Promise<boolean>>new Function (this.onselectedrow));
-
-			let item: any[] = null;
-
-			if (this.rowElements[rowIndex] != null)
-				item = this.rowElements[rowIndex].fields;
-
-			let result = await this.onselectedrow (rowIndex, item);
-
-			if (result === false)
-				return;
-		}
-
 		// In the future, we will support multiple rows being selected. For now 
 		// this will ensure that only one row is selected at a time.
 		{
@@ -250,7 +234,19 @@ export class AdminTable extends HotComponent
 		if (this.singleclickedit === true)
 		{
 			if (this.attachedEdit != null)
-				await this.attachedEdit.editClicked (this);
+				await this.attachedEdit.editClicked ();
+		}
+
+		if (this.onselectedrow != null)
+		{
+			if (typeof (this.onselectedrow) === "string")
+				this.onselectedrow = (<(rowIndex: number, item: any[]) => Promise<boolean>>new Function (this.onselectedrow));
+
+			let item: any[] = this.getSelected ();
+			let result = await this.onselectedrow (rowIndex, item);
+
+			if (result === false)
+				return;
 		}
 
 		/*this.selectedRows = [];
@@ -478,8 +474,12 @@ export class AdminTable extends HotComponent
 		/*let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
 
 		tbody.innerHTML = "";*/
-		// @ts-ignore
-		this.dataTable.clear ();
+
+		if (this.dataTable != null)
+		{
+			// @ts-ignore
+			this.dataTable.clear ();
+		}
 	}
 
 	/**
@@ -631,22 +631,25 @@ export class AdminTable extends HotComponent
 									recordsFiltered: 0
 								};
 
-							if (! (currentData instanceof Array))
+							if (currentData != null)
 							{
-								if (currentData.length != null)
+								if (! (currentData instanceof Array))
 								{
+									if (currentData.length != null)
+									{
+										callbackObj.recordsTotal = currentData.length;
+										callbackObj.recordsFiltered = currentData.length;
+									}
+
+									if (currentData.data != null)
+										callbackObj.data = currentData.data;
+								}
+								else
+								{
+									callbackObj.data = currentData;
 									callbackObj.recordsTotal = currentData.length;
 									callbackObj.recordsFiltered = currentData.length;
 								}
-
-								if (currentData.data != null)
-									callbackObj.data = currentData.data;
-							}
-							else
-							{
-								callbackObj.data = currentData;
-								callbackObj.recordsTotal = currentData.length;
-								callbackObj.recordsFiltered = currentData.length;
 							}
 
 							callback (callbackObj);
