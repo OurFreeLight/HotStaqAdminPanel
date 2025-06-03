@@ -52,6 +52,6 @@
     "webpack-cli": "^5.0.1"
   },
   "peerDependencies": {
-    "hotstaq": "^0.8.118"
+    "hotstaq": "^0.8.120"
   }
 }
