@@ -39,7 +39,7 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
 	}
 
 	if (typeof (HEADER_HEAD_STR) !== "undefined")
-		Hot.echo (HEADER_HEAD_STR);
+		Hot.echoUnsafe (HEADER_HEAD_STR);
 *>
 
 		<!-- Favicons -->
@@ -137,7 +137,7 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
 <*
 	}
 	else
-		Hot.echo (SIGNOUT_HTML);
+		Hot.echoUnsafe (SIGNOUT_HTML);
 *>
 </header>
 
