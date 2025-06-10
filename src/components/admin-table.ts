@@ -650,6 +650,13 @@ export class AdminTable extends HotComponent
 									callbackObj.recordsTotal = currentData.length;
 									callbackObj.recordsFiltered = currentData.length;
 								}
+
+								for (let iIdx = 0; iIdx < currentData.data.length; iIdx++)
+								{
+									const row = currentData.data[iIdx];
+
+									currentData.data[iIdx] = HotStaq.sanitizeJSON (row);
+								}
 							}
 
 							callback (callbackObj);

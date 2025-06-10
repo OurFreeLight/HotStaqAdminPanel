@@ -5,11 +5,12 @@
         let url = item.url;
         let icon = item.icon;
         let label = item.label;
+
 *>
     <ul class="nav flex-column">
         <li class="nav-item">
         <a class="nav-link" href="${url}">
-            ${icon}${label}
+            <* Hot.echoUnsafe (`${icon}${label}`); *>
         </a>
         </li>
     </ul>

@@ -1,24 +1,26 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "main": "build/index.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
     "dev": "hotstaq --hotsite ./HotSite.json --development-mode run --server-type web-api --web-http-port 8080",
     "test": "hotstaq --dev --env-file .env run --server-type web-api --web-test",
+    "clean-assets": "rm -Rf ./public/hotstaq_modules/@hotstaq/admin-panel/*",
     "build": "tsc --build ./tsconfig.json",
-    "build-web": "npm run build && hotstaq create --copy-libraries-to-location ./public/js/ app && webpack --mode=production && hotstaq module build && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --copy-to ./public/js/",
-    "build-web-debug": "npm run build && hotstaq create --copy-libraries-to-location ./public/js/ app && cp -f ./public/js/HotStaq.js ./public/js/HotStaq.min.js && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq module build && hotstaq generate --copy-to ./public/js/",
+    "build-module": "hotstaq module build",
+    "build-web": "npm run build && hotstaq create --copy-libraries-to-location ./public/js/ app && webpack --mode=production && hotstaq module build && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --api --generate-type javascript --copy-to ./public/js/",
+    "build-web-debug": "npm run build && hotstaq create --copy-libraries-to-location ./public/js/ app && cp -f ./public/js/HotStaq.js ./public/js/HotStaq.min.js && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq module build && hotstaq generate --api --generate-type javascript --copy-to ./public/js/",
     "build-doc": "hotstaq generate --generate-type openapi-3.0.0-yaml",
-    "prepublishOnly": "npm run build && npm run build-web"
+    "prepublishOnly": "npm run build-web"
   },
   "keywords": [],
   "author": "FreeLight, Inc",
   "license": "MIT",
   "dependencies": {
     "@hotstaq/dataroute": "^0.2.10",
-    "@hotstaq/userroute": "^0.6.13",
+    "@hotstaq/userroute": "^0.6.14",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
     "datatables.net": "^2.2.2",
