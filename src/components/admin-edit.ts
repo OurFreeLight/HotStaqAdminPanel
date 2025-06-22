@@ -193,7 +193,7 @@ export class AdminEdit extends HotComponent
 	 * The event that can be called when the edit button is clicked.
 	 * This is called before the edit modal opens.
 	 */
-	onEditClicked: () => Promise<boolean> = null;
+	onEditClicked: (clickedTable?: string, selectedFields?: any[]) => Promise<boolean> = null;
 
 	/**
 	 * Get the attached lists.
@@ -236,11 +236,11 @@ export class AdminEdit extends HotComponent
 	/**
 	 * Executes when the edit button is clicked.
 	 */
-	async editClicked (selectedFields: any[] = []): Promise<void>
+	async editClicked (clickedTable: string = null, selectedFields: any[] = []): Promise<void>
 	{
 		if (this.onEditClicked != null)
 		{
-			let result = await this.onEditClicked ();
+			let result = await this.onEditClicked (clickedTable, selectedFields);
 
 			if (result === false)
 				return;
@@ -258,6 +258,12 @@ export class AdminEdit extends HotComponent
 			{
 				let attachedList = attachedLists[iIdx];
 				let table: AdminTable = (<AdminTable>attachedList);
+
+				if (clickedTable != null)
+				{
+					if (table.name !== clickedTable)
+						continue;
+				}
 
 				table.attachedEdit = this;
 				let selectedField = table.getSelected ();
@@ -419,7 +425,12 @@ export class AdminEdit extends HotComponent
 			}
 	
 			if (hotComponent != null)
-				await hotComponent.refreshList ();
+			{
+				const currentData = await hotComponent.refreshList ();
+				const preparedData = hotComponent.prepareData (currentData);
+
+				hotComponent.tableCallback (preparedData);
+			}
 		}
 	}
 
@@ -544,7 +555,10 @@ export class AdminEdit extends HotComponent
 
 				table.attachedEdit = this;
 
-				await table.refreshList ();
+				const currentData = await table.refreshList ();
+				const preparedData = table.prepareData (currentData);
+
+				table.tableCallback (preparedData);
 			}
 		}
 
@@ -628,7 +642,7 @@ export class AdminEdit extends HotComponent
 		if (this.edit_place_here !== "")
 		{
 			outputObj.push ({
-				html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.editClicked ();">${this.edit_text}</button>`,
+				html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.editClicked ('${this.modalId}');">${this.edit_text}</button>`,
 				documentSelector: `hot-place-here[name="${this.edit_place_here}"]`
 			});
 		}

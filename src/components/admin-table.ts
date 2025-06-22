@@ -45,6 +45,10 @@ export interface IAPIResponse
 	 * The error message, if any.
 	 */
 	error?: string;
+	/**
+	 * Can enable/disable sanitization of the returning data.
+	 */
+	hotSanitize?: boolean;
 }
 
 export class AdminTable extends HotComponent
@@ -90,6 +94,14 @@ export class AdminTable extends HotComponent
 	 * }
 	 */
 	rowElements: { fields: any[]; element: HTMLElement; }[] = [];
+	/**
+	 * The table callback for when updating data.
+	 */
+	tableCallback: ((data: any) => void);
+	/**
+	 * The table data for when updating data.
+	 */
+	protected tableData: any;
 	/**
 	 * The selected row indicies. Each index maps to the rowElements array.
 	 * 
@@ -148,6 +160,8 @@ export class AdminTable extends HotComponent
 				indicies: []
 			};
 		this.rowElements = [];
+		this.tableCallback = null;
+		this.tableData = null;
 		//this.selectedRows = [];
 		this.onlist = null;
 		this.listurl = "";
@@ -234,7 +248,7 @@ export class AdminTable extends HotComponent
 		if (this.singleclickedit === true)
 		{
 			if (this.attachedEdit != null)
-				await this.attachedEdit.editClicked ();
+				await this.attachedEdit.editClicked (this.name);
 		}
 
 		if (this.onselectedrow != null)
@@ -243,6 +257,10 @@ export class AdminTable extends HotComponent
 				this.onselectedrow = (<(rowIndex: number, item: any[]) => Promise<boolean>>new Function (this.onselectedrow));
 
 			let item: any[] = this.getSelected ();
+
+			if (item == null)
+				return;
+
 			let result = await this.onselectedrow (rowIndex, item);
 
 			if (result === false)
@@ -454,7 +472,7 @@ export class AdminTable extends HotComponent
 		//this.rows.push (rowsFields);
 		/*rowStr += "</tr>";
 
-		let newObj = HotStaq.addHtml (tbody, rowStr);
+		let newObj = HotStaq.addHtmlUnsafe (tbody, rowStr);
 
 		this.rowElements.push ({
 				fields: fields,
@@ -548,12 +566,48 @@ export class AdminTable extends HotComponent
 				return (null);
 			}
 
-			/*for (let iIdx = 0; iIdx < list.data.length; iIdx++)
+			for (let iIdx = 0; iIdx < list.data.length; iIdx++)
 			{
-				let fields = list.data[iIdx];
+				let elm = list.data[iIdx];
 
-				this.addRow (fields);
-			}*/
+				for (let key in elm)
+				{
+					let value = elm[key];
+					let fieldType: string = this.getFieldType (key);
+
+					if (fieldType == null)
+						fieldType = "text";
+
+					if (fieldType !== "remove")
+					{
+						const orgField = this.headers.fields[key];
+						let defaultOutput: boolean = true;
+
+						if (orgField != null)
+						{
+							if (orgField.oninput != null)
+							{
+								if (typeof (orgField.oninput) === "string")
+									this.headers.fields[key].oninput = (<(item: any) => any>new Function (orgField.oninput));
+
+								value = orgField.oninput (value);
+							}
+
+							if (orgField.onoutput != null)
+							{
+								if (typeof (orgField.onoutput) === "string")
+									this.headers.fields[key].onoutput = (<(index: number, value: string) => string>new Function (orgField.onoutput));
+
+								defaultOutput = false;
+								const newOutput: string = orgField.onoutput (iIdx, value);
+								value = newOutput;
+							}
+						}
+
+						list.data[iIdx][key] = value;
+					}
+				}
+			}
 		}
 
 		let tbody = this.htmlElements[1].getElementsByTagName ("tbody")[0];
@@ -564,12 +618,78 @@ export class AdminTable extends HotComponent
 				const hotComponent: AdminTable = this.parentNode.hotComponent;
 				// @ts-ignore
 				const index = hotComponent.dataTable.row (this).index ();
-				hotComponent.selectRow (this, index);
+
+				if (index != null)
+					hotComponent.selectRow (this, index);
+				else
+				{
+					if (hotComponent.attachedEdit != null)
+					{
+						if (hotComponent.attachedEdit.addClicked != null)
+							hotComponent.attachedEdit.addClicked ();
+					}
+				}
 			});
 
 		this.isListRefreshing = false;
 
 		return (list);
+	}
+
+	/**
+	 * Prepare data.
+	 */
+	prepareData (currentData: any[] | IAPIResponse): {
+			draw: any;
+			data: any[];
+			recordsTotal: number;
+			recordsFiltered: number;
+		}
+	{
+		const callbackObj: any = {
+			draw: this.tableData,
+			data: [],
+			recordsTotal: 0,
+			recordsFiltered: 0
+		};
+
+		if (currentData != null)
+		{
+			if (! (currentData instanceof Array))
+			{
+				if (currentData.length != null)
+				{
+					callbackObj.recordsTotal = currentData.length;
+					callbackObj.recordsFiltered = currentData.length;
+				}
+
+				if (currentData.data != null)
+					callbackObj.data = currentData.data;
+			}
+			else
+			{
+				callbackObj.data = currentData;
+				callbackObj.recordsTotal = currentData.length;
+				callbackObj.recordsFiltered = currentData.length;
+			}
+
+			let sanitize = true;
+
+			if (callbackObj.data.hotSanitize != null)
+				sanitize = callbackObj.data.hotSanitize;
+
+			for (let iIdx = 0; iIdx < callbackObj.data.length; iIdx++)
+			{
+				const row = callbackObj.data[iIdx];
+
+				if (sanitize === true)
+					callbackObj.data[iIdx] = HotStaq.sanitizeJSON (row);
+				else
+					callbackObj.data[iIdx] = row;
+			}
+		}
+
+		return (callbackObj);
 	}
 
 	/**
@@ -579,9 +699,10 @@ export class AdminTable extends HotComponent
 	{
 		setTimeout (async () =>
 			{
-
 				const table = $(htmlElement).find("table");
 
+				// The data stored in columns should be considered safe as it comes directly from 
+				// the HTML after load.
 				let columns: ConfigColumns[] = [];
 				$(table).find ("thead th").each (function ()
 					{
@@ -621,48 +742,17 @@ export class AdminTable extends HotComponent
 							if (this.isListRefreshing === true)
 								return;
 
+							this.tableCallback = callback;
+							// @ts-ignore
+							this.tableData = data.draw;
+
 							let currentData = await this.refreshList ();
+							const preparedData = this.prepareData (currentData);
 
-							const callbackObj: any = {
-									// @ts-ignore
-									draw: data.draw,
-									data: [],
-									recordsTotal: 0,
-									recordsFiltered: 0
-								};
-
-							if (currentData != null)
-							{
-								if (! (currentData instanceof Array))
-								{
-									if (currentData.length != null)
-									{
-										callbackObj.recordsTotal = currentData.length;
-										callbackObj.recordsFiltered = currentData.length;
-									}
-
-									if (currentData.data != null)
-										callbackObj.data = currentData.data;
-								}
-								else
-								{
-									callbackObj.data = currentData;
-									callbackObj.recordsTotal = currentData.length;
-									callbackObj.recordsFiltered = currentData.length;
-								}
-
-								for (let iIdx = 0; iIdx < currentData.data.length; iIdx++)
-								{
-									const row = currentData.data[iIdx];
-
-									currentData.data[iIdx] = HotStaq.sanitizeJSON (row);
-								}
-							}
-
-							callback (callbackObj);
+							this.tableCallback (preparedData);
 						}
 					});
-			}, 50);
+			}, 50); /// @todo Fix this stupid hack. This should happen slightly after the document has been loaded.
 
 		return (null);
 	}
