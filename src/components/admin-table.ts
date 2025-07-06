@@ -566,6 +566,9 @@ export class AdminTable extends HotComponent
 				return (null);
 			}
 
+			if (list.data == null)
+				throw new Error (`Returning list data to "${this.name}" component has a null data field. API response does not match the "IAPIResponse" schema.`);
+
 			for (let iIdx = 0; iIdx < list.data.length; iIdx++)
 			{
 				let elm = list.data[iIdx];
