@@ -475,6 +475,33 @@ export class AdminEdit extends HotComponent
 					return;
 				}
 
+				if (field.type === "number")
+				{
+					// @ts-ignore
+					value = parseFloat (value);
+				}
+
+				if (field.type === "integer")
+				{
+					// @ts-ignore
+					value = parseInt (value);
+				}
+
+				if ((field.type === "bool") || (field.type === "boolean"))
+				{
+					// @ts-ignore
+					const boolval = value.toLowerCase ();
+
+					// @ts-ignore
+					value = false;
+
+					if ((boolval == "1") || (boolval == "true") || (boolval == "yes"))
+					{
+						// @ts-ignore
+						value = true;
+					}
+				}
+
 				values[field.name] = value;
 			});
 
