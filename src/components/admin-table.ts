@@ -505,7 +505,7 @@ export class AdminTable extends HotComponent
 	 * 
 	 * @returns The total number of rows available in the list.
 	 */
-	async refreshList (list: IAPIResponse = null, pageInfo: IListSearchProperties = null): Promise<IAPIResponse>
+	async refreshList (list: IAPIResponse = null): Promise<IAPIResponse>
 	{
 		this.isListRefreshing = true;
 
@@ -515,11 +515,7 @@ export class AdminTable extends HotComponent
 				limit: 10
 			};
 
-		if (pageInfo != null)
-		{
-			search = pageInfo;
-		}
-		else if (this.dataTable != null)
+		if (this.dataTable != null)
 		{
 			// @ts-ignore
 			const searchStr: string = this.dataTable.search ();
@@ -726,9 +722,17 @@ export class AdminTable extends HotComponent
 						if (dataType === "text")
 							dataType = "string";
 
+						// Stamp data-label="<column title>" on each rendered <td>
+						// so consumers can transform tables to card-mode below
+						// the mobile breakpoint via CSS attr().
+						const label = text;
 						columns.push({
 								title: text,
-								data: data
+								data: data,
+								createdCell: function (cell: Node, _cellData: any, _rowData: any, _rowIdx: number, _colIdx: number)
+									{
+										(cell as HTMLElement).setAttribute ("data-label", label);
+									}
 							});
 					});
 
@@ -739,25 +743,21 @@ export class AdminTable extends HotComponent
 					processing: true,
 					serverSide: true,
 					colReorder: true,
+					scroller: true,
 					select: true,
 					dom: 'Qlfrtip',
 					columns: columns,
 					data: [],
-					ajax: async (data: any, callback: ((data: any) => void), settings: InternalSettings) =>
+					ajax: async (data: object, callback: ((data: any) => void), settings: InternalSettings) =>
 						{
 							if (this.isListRefreshing === true)
 								return;
 
 							this.tableCallback = callback;
+							// @ts-ignore
 							this.tableData = data.draw;
 
-							const pageInfo: IListSearchProperties = {
-								offset: data.start || 0,
-								limit: data.length || 10,
-								search: (data.search && data.search.value) ? data.search.value : ""
-							};
-
-							let currentData = await this.refreshList (null, pageInfo);
+							let currentData = await this.refreshList ();
 							const preparedData = this.prepareData (currentData);
 
 							this.tableCallback (preparedData);
