@@ -27,6 +27,9 @@ publish:
     - build
   script:
     - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-    - npm publish --access public
+    # --ignore-scripts skips prepublishOnly (which would re-run build-web and
+    # need a fresh `npm ci` for tsc). The build stage already produced the
+    # full publishable set in build/, build-web/, and public/js/.
+    - npm publish --access public --ignore-scripts
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
