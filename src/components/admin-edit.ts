@@ -152,7 +152,7 @@ export class AdminEdit extends HotComponent
 	/**
 	 * Executes when the add button is clicked.
 	 */
-	async addClicked (): Promise<void>
+	async addClicked (selectedFields: any[] = []): Promise<void>
 	{
 		if (this.onAddClicked != null)
 		{
@@ -170,7 +170,7 @@ export class AdminEdit extends HotComponent
 				$(htmlElement).val ("");
 			});
 
-		this.selectedFields = [];
+		this.selectedFields = selectedFields;
 
 		if (this.onadd != null)
 		{
@@ -193,16 +193,54 @@ export class AdminEdit extends HotComponent
 	 * The event that can be called when the edit button is clicked.
 	 * This is called before the edit modal opens.
 	 */
-	onEditClicked: () => Promise<boolean> = null;
+	onEditClicked: (clickedTable?: string, selectedFields?: any[]) => Promise<boolean> = null;
+
+	/**
+	 * Get the attached lists.
+	 */
+	getAttachedHTMLLists (): HTMLElement[]
+	{
+		const strs = this.attached_list.split (",");
+		const attachedLists: HTMLElement[] = [];
+
+		for (let i = 0; i < strs.length; i++)
+		{
+			const attachedList = strs[i];
+			let attachedListObj = document.getElementById (attachedList);
+			attachedLists.push (attachedListObj);
+		}
+
+		return (attachedLists);
+	}
+
+	/**
+	 * Get the attached lists.
+	 */
+	getAttachedLists (): HotComponent[]
+	{
+		const attachedLists = this.getAttachedHTMLLists ();
+		let attachedListObjs = [];
+
+		for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
+		{
+			let attachedList = attachedLists[iIdx];
+			// @ts-ignore
+			const hotComponent = attachedList.hotComponent;
+
+			attachedListObjs.push (hotComponent);
+		}
+
+		return (attachedListObjs);
+	}
 
 	/**
 	 * Executes when the edit button is clicked.
 	 */
-	async editClicked (): Promise<void>
+	async editClicked (clickedTable: string = null, selectedFields: any[] = []): Promise<void>
 	{
 		if (this.onEditClicked != null)
 		{
-			let result = await this.onEditClicked ();
+			let result = await this.onEditClicked (clickedTable, selectedFields);
 
 			if (result === false)
 				return;
@@ -210,38 +248,49 @@ export class AdminEdit extends HotComponent
 
 		this.modalType = "edit";
 
-		this.selectedFields = [];
+		this.selectedFields = selectedFields;
 
 		if (this.attached_list !== "")
 		{
-			let attachedList = document.getElementById (this.attached_list);
+			const attachedLists = this.getAttachedLists ();
 
-			// @ts-ignore
-			let hotComponent: AdminTable = attachedList.hotComponent;
-			let selectedField = hotComponent.getSelected ();
-
-			if (selectedField != null)
+			for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
 			{
-				await this.processHotFields (
-					async (htmlElement: Element, field: { name: string; type: string; input: string; }) =>
-					{
-						// @ts-ignore
-						let value = selectedField[field.name];
+				let attachedList = attachedLists[iIdx];
+				let table: AdminTable = (<AdminTable>attachedList);
 
-						if (field.input != null)
+				if (clickedTable != null)
+				{
+					if (table.name !== clickedTable)
+						continue;
+				}
+
+				table.attachedEdit = this;
+				let selectedField = table.getSelected ();
+
+				if (selectedField != null)
+				{
+					await this.processHotFields (
+						async (htmlElement: Element, field: { name: string; type: string; input: string; }) =>
 						{
-							if (field.input !== "")
+							// @ts-ignore
+							let value = selectedField[field.name];
+
+							if (field.input != null)
 							{
-								let func = new Function (field.input);
-								value = await func.call (this, value);
+								if (field.input !== "")
+								{
+									let func = new Function (field.input);
+									value = await func.call (this, this, htmlElement, value);
+								}
 							}
-						}
 
-						if (value != null)
-							$(htmlElement).val (value);
-					});
+							if (value != null)
+								$(htmlElement).val (value);
+						});
 
-				this.selectedFields = [selectedField];
+					this.selectedFields = [selectedField];
+				}
 			}
 		}
 
@@ -288,24 +337,30 @@ export class AdminEdit extends HotComponent
 
 		if (this.attached_list !== "")
 		{
-			let attachedList = document.getElementById (this.attached_list);
-			// @ts-ignore
-			hotComponent = attachedList.hotComponent;
-			let checkedRows = hotComponent.getCheckedRows ();
+			const attachedLists = this.getAttachedLists ();
 
-			if (checkedRows.length > 0)
+			for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
 			{
-				for (let i = 0; i < checkedRows.length; i++)
+				let attachedList = attachedLists[iIdx];
+				hotComponent = (<AdminTable>attachedList);
+
+				hotComponent.attachedEdit = this;
+				let checkedRows = hotComponent.getCheckedRows ();
+
+				if (checkedRows.length > 0)
 				{
-					let checkedRow = checkedRows[i];
-					whereFields.push (checkedRow);
+					for (let i = 0; i < checkedRows.length; i++)
+					{
+						let checkedRow = checkedRows[i];
+						whereFields.push (checkedRow);
+					}
 				}
+
+				let selectedField = hotComponent.getSelected ();
+
+				if (selectedField != null)
+					whereFields = [selectedField];
 			}
-
-			let selectedField = hotComponent.getSelected ();
-
-			if (selectedField != null)
-				whereFields = [selectedField];
 		}
 
 		const confirmed: boolean = confirm ("Are you sure you want to remove this item?");
@@ -370,7 +425,12 @@ export class AdminEdit extends HotComponent
 			}
 	
 			if (hotComponent != null)
-				await hotComponent.refreshList ();
+			{
+				const currentData = await hotComponent.refreshList ();
+				const preparedData = hotComponent.prepareData (currentData);
+
+				hotComponent.tableCallback (preparedData);
+			}
 		}
 	}
 
@@ -391,6 +451,20 @@ export class AdminEdit extends HotComponent
 				if ($(htmlElement).attr ("hot-value") != null)
 					value = $(htmlElement).attr ("hot-value");
 
+				if ($(htmlElement).attr ("hot-field-save") != null)
+				{
+					let fieldSave = $(htmlElement).attr ("hot-field-save");
+
+					if (fieldSave != null)
+					{
+						if (fieldSave !== "")
+						{
+							let func = new Function (fieldSave);
+							value = await func.call (this, this, htmlElement, value);
+						}
+					}
+				}
+
 				if (field.type === "array")
 				{
 					if (values[field.name] == null)
@@ -399,6 +473,33 @@ export class AdminEdit extends HotComponent
 					values[field.name].push (value);
 
 					return;
+				}
+
+				if (field.type === "number")
+				{
+					// @ts-ignore
+					value = parseFloat (value);
+				}
+
+				if (field.type === "integer")
+				{
+					// @ts-ignore
+					value = parseInt (value);
+				}
+
+				if ((field.type === "bool") || (field.type === "boolean"))
+				{
+					// @ts-ignore
+					const boolval = value.toLowerCase ();
+
+					// @ts-ignore
+					value = false;
+
+					if ((boolval == "1") || (boolval == "true") || (boolval == "yes"))
+					{
+						// @ts-ignore
+						value = true;
+					}
 				}
 
 				values[field.name] = value;
@@ -472,11 +573,20 @@ export class AdminEdit extends HotComponent
 
 		if (this.attached_list !== "")
 		{
-			let attachedList = document.getElementById (this.attached_list);
-			// @ts-ignore
-			let table: AdminTable = attachedList.hotComponent;
+			const attachedLists = this.getAttachedLists ();
 
-			await table.refreshList ();
+			for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
+			{
+				let attachedList = attachedLists[iIdx];
+				let table: AdminTable = (<AdminTable>attachedList);
+
+				table.attachedEdit = this;
+
+				const currentData = await table.refreshList ();
+				const preparedData = table.prepareData (currentData);
+
+				table.tableCallback (preparedData);
+			}
 		}
 
 		if (this.closeOnSave === true)
@@ -495,6 +605,24 @@ export class AdminEdit extends HotComponent
 				"keyboard": true,
 				"focus": true
 			});
+
+		/// @todo Fix this temporary hack. I dont like it.
+		setTimeout (() =>
+			{
+				if (this.attached_list !== "")
+				{
+					const attachedLists = this.getAttachedLists ();
+		
+					for (let iIdx = 0; iIdx < attachedLists.length; iIdx++)
+					{
+						let attachedList = attachedLists[iIdx];
+						let table: AdminTable = (<AdminTable>attachedList);
+
+						if (table != null)
+							table.attachedEdit = this;
+					}
+				}
+			}, 50);
 
 		return (null);
 	}
@@ -541,7 +669,7 @@ export class AdminEdit extends HotComponent
 		if (this.edit_place_here !== "")
 		{
 			outputObj.push ({
-				html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.editClicked ();">${this.edit_text}</button>`,
+				html: `<button id = "${this.modalId}-edit-btn" type="button" class="btn btn-sm btn-outline-secondary" onclick = "this.editClicked ('${this.modalId}');">${this.edit_text}</button>`,
 				documentSelector: `hot-place-here[name="${this.edit_place_here}"]`
 			});
 		}

@@ -1,29 +1,37 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.3.4",
+  "version": "0.3.18",
   "main": "build/index.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
     "dev": "hotstaq --hotsite ./HotSite.json --development-mode run --server-type web-api --web-http-port 8080",
     "test": "hotstaq --dev --env-file .env run --server-type web-api --web-test",
+    "clean-assets": "rm -Rf ./public/hotstaq_modules/@hotstaq/admin-panel/*",
     "build": "tsc --build ./tsconfig.json",
-    "build-web": "npm run build && hotstaq create --copy-libraries-to-location ./public/js/ app && webpack --mode=production && hotstaq module build && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --copy-to ./public/js/",
-    "build-web-debug": "npm run build && hotstaq create --copy-libraries-to-location ./public/js/ app && cp -f ./public/js/HotStaq.js ./public/js/HotStaq.min.js && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq module build && hotstaq generate --copy-to ./public/js/",
+    "build-module": "hotstaq module build",
+    "build-web": "npm run build && mkdir -p ./public/js/ && hotstaq create --copy-libraries-to-location ./public/js/ app && webpack --mode=production && hotstaq module build && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --api --generate-type javascript --copy-to ./public/js/",
+    "build-web-debug": "npm run build && mkdir -p ./public/js/ && hotstaq create --copy-libraries-to-location ./public/js/ app && cp -f ./public/js/HotStaq.js ./public/js/HotStaq.min.js && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq module build && hotstaq generate --api --generate-type javascript --copy-to ./public/js/",
     "build-doc": "hotstaq generate --generate-type openapi-3.0.0-yaml",
-    "prepublishOnly": "npm run build && npm run build-web"
+    "prepublishOnly": "npm run build-web"
   },
   "keywords": [],
   "author": "FreeLight, Inc",
   "license": "MIT",
   "dependencies": {
     "@hotstaq/dataroute": "^0.2.10",
-    "@popperjs/core": "^2.11.6",
-    "bootstrap": "^5.2.3",
-    "chart.js": "^2.9.4",
+    "@hotstaq/userroute": "^0.6.14",
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.3",
+    "datatables.net": "^2.2.2",
+    "datatables.net-bs5": "^2.2.2",
+    "datatables.net-colreorder-bs5": "^2.0.4",
+    "datatables.net-scroller-bs5": "^2.4.3",
+    "datatables.net-searchbuilder-bs5": "^1.8.2",
+    "datatables.net-select-bs5": "^3.0.0",
     "dotenv": "^10.0.0",
     "feather-icons": "^4.29.0",
-    "jquery": "^3.6.3"
+    "jquery": "^3.7.1"
   },
   "devDependencies": {
     "@types/bootstrap": "^5.2.6",
@@ -34,16 +42,18 @@
     "@types/js-cookie": "^2.2.7",
     "@types/mime-types": "^2.1.1",
     "@types/mocha": "^10.0.1",
-    "@types/node": "^14.17.32",
+    "@types/node": "^20.14.10",
     "@types/node-fetch": "^2.6.1",
+    "@types/pg": "^8.11.11",
     "@types/selenium-webdriver": "^4.1.5",
     "@types/uuid": "^8.3.4",
     "chokidar": "^3.5.3",
     "ts-loader": "^7.0.5",
     "webpack": "^5.75.0",
+    "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.0.1"
   },
   "peerDependencies": {
-    "hotstaq": "^0.8.36"
+    "hotstaq": "^0.8.121"
   }
 }

@@ -39,7 +39,7 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
 	}
 
 	if (typeof (HEADER_HEAD_STR) !== "undefined")
-		Hot.echo (HEADER_HEAD_STR);
+		Hot.echoUnsafe (HEADER_HEAD_STR);
 *>
 
 		<!-- Favicons -->
@@ -137,7 +137,7 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
 <*
 	}
 	else
-		Hot.echo (SIGNOUT_HTML);
+		Hot.echoUnsafe (SIGNOUT_HTML);
 *>
 </header>
 
@@ -145,8 +145,12 @@ let adminPanel = await Hot.import ("@hotstaq/admin-panel");
   <div class="row">
 	<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
 	  <div class="position-sticky pt-3 sidebar-sticky">
-	  	<* await Hot.include ("@hotstaq/admin-panel/admin-sidebar.hott", {
-				SIDEBAR_ITEMS: SIDEBAR_ITEMS
-			}); *>
+	  	<*
+			if (typeof (SIDEBAR_ITEMS) === "undefined")
+				SIDEBAR_ITEMS = [];
+		
+			await Hot.include ("@hotstaq/admin-panel/admin-sidebar.hott", {
+					SIDEBAR_ITEMS: SIDEBAR_ITEMS
+				}); *>
 	  </div>
 	</nav>

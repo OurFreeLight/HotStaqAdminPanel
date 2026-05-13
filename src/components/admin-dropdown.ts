@@ -63,7 +63,18 @@ export class AdminDropdown extends HotComponent
 						let value: string = result.value;
 						let text: string = result.text;
 
-						searchResultsDiv.append ($(`<li><a class=\"dropdown-item\" href=\"${url}\" data-value = "${value}" onclick = \"this.parentNode.parentNode.parentNode.parentNode.hotComponent.selected (${iIdx});\">${text}</a></li>`));
+						const $template = $(`<li><a class="dropdown-item" href="" data-value="" onclick=""></a></li>`);
+
+						const $a = $template.find("a");
+						$a.attr("href", url);
+						$a.attr("data-value", value);
+						$a.text(text);
+
+						$a.removeAttr("onclick").on("click", () => {
+							this.selected(iIdx);
+						});
+
+						searchResultsDiv.append($template);
 					}
 				});
 		}

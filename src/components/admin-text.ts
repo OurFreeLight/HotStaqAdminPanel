@@ -50,13 +50,14 @@ export class AdminText extends HotComponent
 
 		const field = this.htmlElements[0].getAttribute ("hot-field");
 		let field_type = this.htmlElements[0].getAttribute ("hot-field-type");
+		let htmlType = this.htmlElements[0].getAttribute ("type") || "text";
 
 		if (field_type == null)
 			field_type = "text";
 
 		return (`<div>
 			<label class="form-label">${this.inner}</label>
-			<input class="${this.css_class}" type = "text" hot-field = "${field}" hot-field-type = "${field_type}" value = "${value}" />
+			<input class="${this.css_class}" type = "${htmlType}" hot-field = "${field}" hot-field-type = "${field_type}" value = "${value}" />
 		</div>`);
 	}
 }

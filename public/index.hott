@@ -9,21 +9,57 @@
 				label: "Users"
 			}]
 		});
+	const baseUrl = "http://localhost:3243";
 *>
 
 <admin-dashboard id = "users" hot-title = "Users" hot-base = "http://localhost:3243">
-	<admin-table id = "userList" hot-schema = "users">
-		<admin-table-field hot-field = "name">Name</admin-table-field>
+	<admin-table id = "userList" hot-singleclickedit = "true" hot-checkbox = "false" 
+		hot-onlist = "<(listProps) =>
+		{
+			let users = await Hot.jsonRequest (`${baseUrl}/v1/admins/listUsers`, {
+				search: listProps.search,
+				offset: listProps.offset,
+				limit: listProps.limit
+			}, '');
+
+			return (users);
+		}Ra>">
+		<admin-table-field hot-field = "displayName">Display Name</admin-table-field>
 		<admin-table-field hot-field = "email">Email</admin-table-field>
 		<admin-table-field hot-no_output="1" hot-field = "registered" hot-field_type = "remove"></admin-table-field>
 	</admin-table>
 </admin-dashboard>
 
-<admin-edit name = "usersModal" hot-type = "add" hot-title = "Add" hot-button_title = "Save" hot-schema = "users" hot-attached_list = "userList">
-	<admin-text hot-field = "name">Name</admin-text>
+<admin-edit name = "usersModal" hot-type = "add" hot-title = "Add" hot-button_title = "Save" 
+	hot-schema = "users" hot-attached_list = "userList"
+	hot-onsave = "<(modelType, values, selectedFields) =>
+		{
+			let result = await Hot.jsonRequest (`${baseUrl}/v1/users/register`, {
+				user: {
+					displayName: values.displayName,
+					email: values.email,
+					password: values.password
+				}
+			}, '${jwtToken}');
+
+			if (result.error != null)
+			{
+				alert (result.error);
+
+				return (false);
+			}
+		}Ra>"
+	hot-onedit = "<(modalType, selectedFields) =>
+		{
+		}Ra>">
+	<admin-text hot-field = "password" type = "password">Password</admin-text>
+	<admin-text hot-field = "displayName">Display Name</admin-text>
 	<admin-text hot-field = "email">Email</admin-text>
 	<admin-text hot-no_output="1" hot-field = "registered" hot-field_type = "remove"></admin-text>
-	<button class = "form-control" hot-place-parent = "modalBody">Test</button>
+	<button class = "form-control" hot-place-parent = "modalBody" onclick = "<() =>
+		{
+			alert ('Button was clicked');
+		}>">Clickable Button</button>
 </admin-edit>
 
 <*

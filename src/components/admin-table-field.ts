@@ -76,7 +76,7 @@ export class AdminTableField extends HotComponent
 		}
 
 		return ([{
-			html: `<th>${this.inner}</th>`,
+			html: `<th data-field = "${this.field}" data-field-type = "${this.field_type}">${this.inner}</th>`,
 			placeHereParent: "header"
 		}]);
 	}
