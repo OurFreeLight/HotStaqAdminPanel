@@ -10,8 +10,8 @@
     "clean-assets": "rm -Rf ./public/hotstaq_modules/@hotstaq/admin-panel/*",
     "build": "tsc --build ./tsconfig.json",
     "build-module": "hotstaq module build",
-    "build-web": "npm run build && hotstaq create --copy-libraries-to-location ./public/js/ app && webpack --mode=production && hotstaq module build && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --api --generate-type javascript --copy-to ./public/js/",
-    "build-web-debug": "npm run build && hotstaq create --copy-libraries-to-location ./public/js/ app && cp -f ./public/js/HotStaq.js ./public/js/HotStaq.min.js && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq module build && hotstaq generate --api --generate-type javascript --copy-to ./public/js/",
+    "build-web": "npm run build && mkdir -p ./public/js/ && hotstaq create --copy-libraries-to-location ./public/js/ app && webpack --mode=production && hotstaq module build && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq generate --api --generate-type javascript --copy-to ./public/js/",
+    "build-web-debug": "npm run build && mkdir -p ./public/js/ && hotstaq create --copy-libraries-to-location ./public/js/ app && cp -f ./public/js/HotStaq.js ./public/js/HotStaq.min.js && webpack --mode=development && cp -f ./build-web/AdminPanelComponents.js ./public/js/AdminPanelComponents.js && hotstaq module build && hotstaq generate --api --generate-type javascript --copy-to ./public/js/",
     "build-doc": "hotstaq generate --generate-type openapi-3.0.0-yaml",
     "prepublishOnly": "npm run build-web"
   },
