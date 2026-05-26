@@ -7,6 +7,16 @@ import { AdminTableField } from "./components/admin-table-field";
 import { AdminTableRow } from "./components/admin-table-row";
 import { AdminText } from "./components/admin-text";
 
+// admin-panel 0.4.0 — Freelight-style components. Backwards compatible
+// with the existing modal/table set above; pages opt in by switching
+// their .hott templates to use the new tags.
+import { AdminFormField } from "./components/admin-form-field";
+import { AdminAddPanel } from "./components/admin-add-panel";
+import { AdminCardTable } from "./components/admin-card-table";
+import { AdminDetailPage } from "./components/admin-detail-page";
+import { AdminDisclaimer } from "./components/admin-disclaimer";
+import { AdminEyebrowHeading } from "./components/admin-eyebrow-heading";
+
 export {
 		AdminButton,
 		AdminDropdown,
@@ -15,5 +25,11 @@ export {
 		AdminTable,
 		AdminTableField,
 		AdminTableRow,
-		AdminText
+		AdminText,
+		AdminFormField,
+		AdminAddPanel,
+		AdminCardTable,
+		AdminDetailPage,
+		AdminDisclaimer,
+		AdminEyebrowHeading
 	};

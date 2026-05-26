@@ -1,0 +1,174 @@
+/* ==============================================================
+   Freelight-style admin-panel theme (admin-panel 0.4.0+).
+   Visual styling for the new card/detail-page/add-panel components.
+   ============================================================== */
+
+/* ---- shared tokens ---- */
+:root {
+    --flap-text:        #1f2937;
+    --flap-text-muted:  #6b7280;
+    --flap-border:      #e5e7eb;
+    --flap-surface:     #ffffff;
+    --flap-surface-2:   #f8fafc;
+    --flap-surface-3:   #f1f5f9;
+    --flap-hover:       #eef2ff;
+    --flap-accent:      #4f46e5;
+    --flap-accent-soft: rgba(79, 70, 229, 0.08);
+    --flap-danger:      #dc2626;
+    --flap-success:     #16a34a;
+}
+
+[data-theme="dark"] {
+    --flap-text:        #e2e8f0;
+    --flap-text-muted:  #94a3b8;
+    --flap-border:      #1e293b;
+    --flap-surface:     #0f172a;
+    --flap-surface-2:   #111827;
+    --flap-surface-3:   #1f2937;
+    --flap-hover:       #1e1b4b;
+    --flap-accent:      #6366f1;
+    --flap-accent-soft: rgba(99, 102, 241, 0.18);
+}
+
+/* ---- admin-card-table ---- */
+.fl-card-table {
+    border-color: var(--flap-border);
+}
+
+.fl-card-table .card-header {
+    background: var(--flap-surface-2);
+    border-bottom: 1px solid var(--flap-border);
+    font-weight: 600;
+    color: var(--flap-text);
+}
+
+.fl-card-list .fl-card-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.1rem;
+    border-color: var(--flap-border);
+    color: var(--flap-text);
+    text-decoration: none;
+}
+
+.fl-card-list .fl-card-row-link:hover,
+.fl-card-list .fl-card-row-link:focus {
+    background: var(--flap-hover);
+    color: var(--flap-text);
+}
+
+.fl-card-list .fl-card-row-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.fl-card-list .fl-card-row-label {
+    font-weight: 600;
+    color: var(--flap-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fl-card-list .fl-card-row-sub {
+    color: var(--flap-text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.15rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fl-card-list .fl-card-row-actions {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 0.4rem;
+}
+
+/* Mobile: stack the action area below the label so labels keep
+   their width and buttons don't fight for room. */
+@media (max-width: 575.98px) {
+    .fl-card-list .fl-card-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .fl-card-list .fl-card-row-actions {
+        margin-top: 0.5rem;
+    }
+}
+
+/* ---- admin-add-panel ---- */
+.fl-add-panel-body {
+    border-top: 1px solid var(--flap-border);
+    background: var(--flap-surface-2);
+}
+
+.fl-add-panel-title {
+    color: var(--flap-text);
+    letter-spacing: 0.01em;
+}
+
+.fl-add-panel-form .form-label {
+    color: var(--flap-text);
+    margin-bottom: 0.25rem;
+}
+
+/* ---- admin-detail-page ---- */
+.fl-detail-page .card {
+    border-color: var(--flap-border);
+}
+
+.fl-detail-page .card-body {
+    background: var(--flap-surface);
+}
+
+.fl-detail-page .form-label {
+    color: var(--flap-text);
+    margin-bottom: 0.25rem;
+}
+
+.fl-detail-feedback {
+    margin-bottom: 1rem;
+}
+
+.fl-detail-feedback.d-none {
+    margin-bottom: 0;
+}
+
+/* Sticky save bar — sits at the bottom of the viewport while the user
+   edits, so Save is always reachable on long forms. */
+.fl-detail-save-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.9rem 0;
+    background: var(--flap-surface);
+    border-top: 1px solid var(--flap-border);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+    z-index: 50;
+}
+
+[data-theme="dark"] .fl-detail-save-bar {
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* ---- admin-disclaimer ---- */
+.fl-disclaimer {
+    border-color: var(--flap-border);
+}
+
+.fl-disclaimer .card-body {
+    background: var(--flap-accent-soft);
+}
+
+/* ---- admin-eyebrow-heading ---- */
+.fl-eyebrow-heading {
+    margin-top: 0.25rem;
+}
+
+.fl-eyebrow-heading h1 {
+    color: var(--flap-text);
+    letter-spacing: -0.01em;
+}

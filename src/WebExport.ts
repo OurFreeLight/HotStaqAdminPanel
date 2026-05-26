@@ -23,7 +23,13 @@ async function buildAssets (): Promise<any>
 				"AdminTable",
 				"AdminTableField",
 				"AdminTableRow",
-				"AdminText"]
+				"AdminText",
+				"AdminFormField",
+				"AdminAddPanel",
+				"AdminCardTable",
+				"AdminDetailPage",
+				"AdminDisclaimer",
+				"AdminEyebrowHeading"]
 		});
 }
 
