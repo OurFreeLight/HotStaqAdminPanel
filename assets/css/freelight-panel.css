@@ -32,10 +32,12 @@
 
 /* ---- admin-card-table ---- */
 .fl-card-table {
+    background: var(--flap-surface);
     border-color: var(--flap-border);
+    color: var(--flap-text);
 }
 
-.fl-card-table .card-header {
+.fl-card-table > .card-header {
     background: var(--flap-surface-2);
     border-bottom: 1px solid var(--flap-border);
     font-weight: 600;
@@ -99,9 +101,22 @@
 }
 
 /* ---- admin-add-panel ---- */
-.fl-add-panel-body {
-    border-top: 1px solid var(--flap-border);
+.fl-add-panel {
+    background: var(--flap-surface);
+    border-color: var(--flap-border);
+    color: var(--flap-text);
+}
+
+.fl-add-panel > .card-header {
     background: var(--flap-surface-2);
+    border-bottom: 1px solid var(--flap-border);
+    color: var(--flap-text);
+}
+
+.fl-add-panel-body .card-body {
+    background: var(--flap-surface);
+    color: var(--flap-text);
+    border-top: 1px solid var(--flap-border);
 }
 
 .fl-add-panel-title {

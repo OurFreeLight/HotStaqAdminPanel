@@ -62,6 +62,12 @@ export class AdminAddPanel extends HotComponent
 	/**
 	 * Wire submit + cancel handlers after the DOM is in place.
 	 * Bootstrap's data-bs-toggle handles open/close automatically.
+	 *
+	 * Also relocates any child elements (admin-form-fields, etc.) that
+	 * the framework appended to the card root into the collapse panel's
+	 * form-row. Without this, children would render OUTSIDE the
+	 * collapsible body (siblings of the card-header and the collapse
+	 * div), visible on the page even when the panel is collapsed.
 	 */
 	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
 	{
@@ -72,6 +78,21 @@ export class AdminAddPanel extends HotComponent
 
 		const submitBtn = root.querySelector (".fl-add-panel-submit") as HTMLButtonElement | null;
 		const cancelBtn = root.querySelector (".fl-add-panel-cancel") as HTMLButtonElement | null;
+
+		// Auto-relocate stray children into the form-row. The framework
+		// appends children that lack `hot-place-parent` directly under
+		// compHtmlElement2 (the card root). Move them inside the form.
+		const row = root.querySelector (".fl-add-panel-form .row") as HTMLElement | null;
+		const collapse = document.getElementById (this.panelId);
+		const header = root.querySelector (":scope > .card-header") as HTMLElement | null;
+		if (row != null)
+		{
+			Array.from (root.children).forEach ((child) =>
+				{
+					if (child === header || child === collapse) return;
+					row.appendChild (child as Element);
+				});
+		}
 
 		if (submitBtn != null)
 		{
