@@ -28,6 +28,22 @@
     --flap-hover:       #1e1b4b;
     --flap-accent:      #6366f1;
     --flap-accent-soft: rgba(99, 102, 241, 0.18);
+
+    /* DAO toggles dark mode via `[data-theme="dark"]` on <html>, not
+       via Bootstrap's `[data-bs-theme="dark"]`, so Bootstrap's own
+       color-mode adaptation never fires. The result: .text-muted /
+       .form-text / .text-secondary etc. keep their light-mode
+       defaults (--bs-secondary-color = #6c757d) which has poor
+       contrast on the #0f172a surface. Override the Bootstrap
+       tokens here so every Bootstrap muted-text class gets our
+       brighter slate-400 in dark mode. */
+    --bs-body-color:        var(--flap-text);
+    --bs-secondary-color:   var(--flap-text-muted);
+    --bs-tertiary-color:    var(--flap-text-muted);
+    --bs-emphasis-color:    var(--flap-text);
+    --bs-secondary-bg:      var(--flap-surface-2);
+    --bs-tertiary-bg:       var(--flap-surface-3);
+    --bs-border-color:      var(--flap-border);
 }
 
 /* ---- admin-card-table ---- */
