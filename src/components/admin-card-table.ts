@@ -146,6 +146,19 @@ export class AdminCardTable extends HotComponent
 			this.rowsById = {};
 			rows.forEach ((r) => { if (r && r.id) this.rowsById[r.id] = r; });
 
+			// CRITICAL: close the editor BEFORE rewriting the list's
+			// innerHTML. If the editor was open (placed as a sibling of
+			// a row via placeUnderAnchor), innerHTML would orphan it —
+			// `document.getElementById(editor.id)` would then return null
+			// permanently and every subsequent row click would silently
+			// bail. closeEditor moves the element back under <body>.
+			if (this.row_edit_id !== "")
+			{
+				const editor: any = document.getElementById (this.row_edit_id);
+				if (editor != null && typeof editor.closeEditor === "function")
+					editor.closeEditor ();
+			}
+
 			if (rows.length === 0)
 			{
 				list.innerHTML = `<div class="text-muted small text-center py-4">${this.empty_text}</div>`;
@@ -153,15 +166,6 @@ export class AdminCardTable extends HotComponent
 			}
 
 			list.innerHTML = rows.map ((row) => this.renderRow (row)).join ("");
-
-			// Close any open accordion editor — the row it was anchored
-			// under may have just been re-rendered (different DOM node).
-			if (this.row_edit_id !== "")
-			{
-				const editor: any = document.getElementById (this.row_edit_id);
-				if (editor != null && typeof editor.closeEditor === "function")
-					editor.closeEditor ();
-			}
 		}
 		catch (ex)
 		{
