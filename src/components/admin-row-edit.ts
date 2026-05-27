@@ -111,6 +111,22 @@ export class AdminRowEdit extends HotComponent
 		(root as any).openForRow  = function (row: any, anchor: HTMLElement, ownerListId: string) { return self.openForRow (row, anchor, ownerListId); };
 		(root as any).closeEditor = function () { return self.close (); };
 
+		// Park ourselves under <body> from initial mount. This makes our
+		// resting location stable and predictable across re-renders of
+		// the partner card-table. Without this, the editor first lives
+		// wherever the .hott placed its tag (typically as a sibling of
+		// the card-table) — which works, but means closeEditor /
+		// fetchAndRender have to deal with two possible homes (original
+		// .hott site vs. body). Park-under-body makes "the editor is
+		// always either here at body or under a row inside the list"
+		// the only invariant the rest of the code has to track.
+		if (root.parentNode !== document.body && document.body != null)
+		{
+			if (root.parentNode != null)
+				root.parentNode.removeChild (root);
+			document.body.appendChild (root);
+		}
+
 		return (null);
 	}
 
@@ -118,7 +134,16 @@ export class AdminRowEdit extends HotComponent
 	public openForRow (rowData: any, anchor: HTMLElement, ownerListId: string): void
 	{
 		const root = document.getElementById (this.name);
-		if (root == null) return;
+		if (root == null)
+		{
+			// If the editor element has been orphaned (e.g. an innerHTML
+			// reset on the host list detached it before closeEditor could
+			// move it back to body), there's nothing we can do here.
+			// Surface it loudly so the next time this happens we can see
+			// it in the console instead of guessing at silent no-ops.
+			console.warn (`admin-row-edit (${this.name}): openForRow called but element not in document — was the editor orphaned by an innerHTML reset?`);
+			return;
+		}
 
 		// If already open on the same row, treat as close.
 		if (this.anchorRow === anchor && root.classList.contains ("show"))
