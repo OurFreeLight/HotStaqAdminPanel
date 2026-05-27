@@ -116,6 +116,41 @@
     }
 }
 
+/* ---- form-control dark-mode ----
+   Bootstrap doesn't restyle .form-control / .form-select / textarea
+   under [data-theme="dark"] (it only knows [data-bs-theme="dark"]),
+   so the defaults are white-bg-dark-text. On a dark page, typing
+   into one of these renders the user's light text on a white field
+   and is unreadable. Force matching surface + text tokens here. */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] textarea.form-control {
+    background-color: var(--flap-surface-3);
+    color: var(--flap-text);
+    border-color: var(--flap-border);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] textarea.form-control:focus {
+    background-color: var(--flap-surface-3);
+    color: var(--flap-text);
+    border-color: var(--flap-accent);
+    box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+}
+
+[data-theme="dark"] .form-control::placeholder,
+[data-theme="dark"] textarea.form-control::placeholder {
+    color: var(--flap-text-muted);
+    opacity: 0.7;
+}
+
+[data-theme="dark"] .form-control:disabled,
+[data-theme="dark"] .form-select:disabled {
+    background-color: var(--flap-surface-2);
+    color: var(--flap-text-muted);
+}
+
 /* ---- admin-add-panel ---- */
 .fl-add-panel {
     background: var(--flap-surface);

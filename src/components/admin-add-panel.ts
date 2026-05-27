@@ -103,6 +103,15 @@ export class AdminAddPanel extends HotComponent
 					submitBtn.disabled = true;
 					try
 					{
+						// The framework's handleAttributes assigns
+						// hot-onsave as a raw string. HotStaq's `<...>Ra>`
+						// template processor has already rewritten the body
+						// into a `return Hot.CurrentPage.callAsyncFunction(...)`
+						// call; we just need to wrap it as a Function. Same
+						// pattern admin-edit uses (admin-edit.js:309-311).
+						if (typeof self.onsave === "string")
+							self.onsave = new Function (self.onsave) as any;
+
 						let keepOpen: any = false;
 						if (typeof self.onsave === "function")
 							keepOpen = await self.onsave (values);
