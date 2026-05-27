@@ -216,7 +216,16 @@ export class AdminAddPanel extends HotComponent
 				<div id="${this.panelId}" class="collapse fl-add-panel-body${showClass}">
 					<div class="card-body border-top">
 						<form id="${this.formId}" class="fl-add-panel-form">
-							<div class="row g-2 align-items-end">
+							<!--
+								Default top-alignment (no align-items-end).
+								align-items-end was pushing label/input rows
+								down on the col with fewer children — e.g.
+								the Sync-type col has help text below the
+								input, the Name col doesn't, so the Name
+								label rendered lower than the Sync label.
+								Top-alignment keeps labels on the same line.
+							-->
+							<div class="row g-3">
 								<hot-place-here name="panelBody"></hot-place-here>
 							</div>
 							<div class="d-flex justify-content-end gap-2 mt-3">
