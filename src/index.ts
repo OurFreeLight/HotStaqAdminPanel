@@ -16,6 +16,7 @@ import { AdminCardTable } from "./components/admin-card-table";
 import { AdminDetailPage } from "./components/admin-detail-page";
 import { AdminDisclaimer } from "./components/admin-disclaimer";
 import { AdminEyebrowHeading } from "./components/admin-eyebrow-heading";
+import { AdminRowEdit } from "./components/admin-row-edit";
 
 export {
 		AdminButton,
@@ -31,5 +32,6 @@ export {
 		AdminCardTable,
 		AdminDetailPage,
 		AdminDisclaimer,
-		AdminEyebrowHeading
+		AdminEyebrowHeading,
+		AdminRowEdit
 	};

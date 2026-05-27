@@ -29,7 +29,8 @@ async function buildAssets (): Promise<any>
 				"AdminCardTable",
 				"AdminDetailPage",
 				"AdminDisclaimer",
-				"AdminEyebrowHeading"]
+				"AdminEyebrowHeading",
+				"AdminRowEdit"]
 		});
 }
 

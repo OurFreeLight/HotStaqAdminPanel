@@ -104,6 +104,46 @@
     gap: 0.4rem;
 }
 
+/* Clickable rows (accordion mode) — visual affordance + selected state. */
+.fl-card-list .fl-card-row-clickable {
+    cursor: pointer;
+}
+
+.fl-card-list .fl-card-row-clickable:hover {
+    background: var(--flap-hover);
+}
+
+/* ---- admin-row-edit (inline accordion editor) ---- */
+.fl-row-edit {
+    background: var(--flap-surface-2);
+    border-top: 1px solid var(--flap-border);
+    border-bottom: 1px solid var(--flap-border);
+    padding: 1.1rem 1.25rem 1rem;
+    color: var(--flap-text);
+}
+
+.fl-row-edit[hidden] {
+    display: none !important;
+}
+
+.fl-row-edit-form .form-label {
+    color: var(--flap-text);
+}
+
+.fl-row-edit-feedback {
+    margin-bottom: 0.75rem;
+}
+
+.fl-row-edit-feedback.d-none {
+    margin-bottom: 0;
+}
+
+.fl-row-edit-actions {
+    border-top: 1px solid var(--flap-border);
+    padding-top: 0.85rem;
+    margin-top: 1rem;
+}
+
 /* Mobile: stack the action area below the label so labels keep
    their width and buttons don't fight for room. */
 @media (max-width: 575.98px) {
