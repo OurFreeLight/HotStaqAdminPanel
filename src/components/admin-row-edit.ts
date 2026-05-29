@@ -1,4 +1,5 @@
 import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
+import { populateFields, collectFieldValues, resetFields } from "./field-io";
 
 /**
  * Inline accordion edit form. Pairs with <admin-card-table> via the
@@ -221,43 +222,17 @@ export class AdminRowEdit extends HotComponent
 
 	protected populateFields (root: HTMLElement, rowData: any): void
 	{
-		const nodes = root.querySelectorAll ("[hot-field]");
-		for (let i = 0; i < nodes.length; i++)
-		{
-			const el = nodes[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-			const field = el.getAttribute ("hot-field");
-			if (field == null || field === "") continue;
-			const val = rowData ? rowData[field] : null;
-			if (val == null)
-			{
-				if (el instanceof HTMLInputElement && el.type === "checkbox") el.checked = false;
-				else el.value = "";
-				continue;
-			}
-			if (el instanceof HTMLInputElement && el.type === "checkbox")
-				el.checked = val === true || val === "true" || val === 1;
-			else
-				el.value = String (val);
-		}
+		// Reset everything first — the row data is authoritative and any
+		// field absent from rowData should appear blank, not retain the
+		// previously-edited row's value.
+		resetFields (root);
+		if (rowData != null)
+			populateFields (root, rowData);
 	}
 
 	protected collectValues (root: HTMLElement): any
 	{
-		const out: any = {};
-		const nodes = root.querySelectorAll ("[hot-field]");
-		for (let i = 0; i < nodes.length; i++)
-		{
-			const el = nodes[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-			const field = el.getAttribute ("hot-field");
-			if (field == null || field === "") continue;
-			if (el instanceof HTMLInputElement && el.type === "checkbox")
-				out[field] = el.checked;
-			else if (el instanceof HTMLInputElement && el.type === "number")
-				out[field] = el.value === "" ? null : Number (el.value);
-			else
-				out[field] = el.value;
-		}
-		return out;
+		return (collectFieldValues (root));
 	}
 
 	protected refreshOwnerList (): void

@@ -30,7 +30,10 @@ async function buildAssets (): Promise<any>
 				"AdminDetailPage",
 				"AdminDisclaimer",
 				"AdminEyebrowHeading",
-				"AdminRowEdit"]
+				"AdminRowEdit",
+				"AdminRichText",
+				"AdminRelatedPicker",
+				"AdminApprovalPanel"]
 		});
 }
 

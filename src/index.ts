@@ -18,6 +18,12 @@ import { AdminDisclaimer } from "./components/admin-disclaimer";
 import { AdminEyebrowHeading } from "./components/admin-eyebrow-heading";
 import { AdminRowEdit } from "./components/admin-row-edit";
 
+// admin-panel 0.5.0 — composite field components for detail pages
+// (rich-text, related-entity picker, approval/moderation panel).
+import { AdminRichText } from "./components/admin-rich-text";
+import { AdminRelatedPicker } from "./components/admin-related-picker";
+import { AdminApprovalPanel } from "./components/admin-approval-panel";
+
 export {
 		AdminButton,
 		AdminDropdown,
@@ -33,5 +39,8 @@ export {
 		AdminDetailPage,
 		AdminDisclaimer,
 		AdminEyebrowHeading,
-		AdminRowEdit
+		AdminRowEdit,
+		AdminRichText,
+		AdminRelatedPicker,
+		AdminApprovalPanel
 	};

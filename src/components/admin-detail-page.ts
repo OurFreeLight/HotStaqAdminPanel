@@ -1,4 +1,5 @@
 import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
+import { populateFields, collectFieldValues } from "./field-io";
 
 /**
  * Full-page detail chrome for an entity. Replaces the modal opened by
@@ -55,6 +56,10 @@ export class AdminDetailPage extends HotComponent
 	delete_text: string;
 	/** Confirmation prompt for delete. */
 	delete_confirm: string;
+	/** "1" / "true" → send {expanded: true} on the get fetch. Required for related-picker populates that need {id,name} objects, not bare ids. */
+	expanded: string;
+	/** "1" / "true" → omit the get fetch entirely (create-mode pages without an existing id). */
+	skip_fetch: string;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -73,6 +78,13 @@ export class AdminDetailPage extends HotComponent
 		this.save_text       = "Save";
 		this.delete_text     = "Delete";
 		this.delete_confirm  = "Are you sure you want to delete this?";
+		this.expanded        = "0";
+		this.skip_fetch      = "0";
+	}
+
+	protected isTrue (s: string): boolean
+	{
+		return (s === "1" || s === "true");
 	}
 
 	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
@@ -81,8 +93,27 @@ export class AdminDetailPage extends HotComponent
 		const page = document.getElementById (this.name);
 		if (page == null) return (null);
 
+		// Auto-relocate stray children into the .row.g-3 slot. The
+		// framework appends children that lack `hot-place-parent` directly
+		// under the root element. Move them inside the form body so they
+		// don't render outside the card.
+		const slot = page.querySelector (".fl-detail-page-body") as HTMLElement | null;
+		if (slot != null)
+		{
+			Array.from (page.children).forEach ((child) =>
+				{
+					const el = child as HTMLElement;
+					// Skip the chrome the component renders itself.
+					if (el.classList.contains ("container")) return;
+					if (el.classList.contains ("fl-detail-save-bar")) return;
+					slot.appendChild (el);
+				});
+		}
+
 		const id = self.readIdFromUrl ();
-		if (!id)
+		const skipFetch = self.isTrue (self.skip_fetch);
+
+		if (!id && !skipFetch)
 		{
 			self.showError (page, "No id provided in the URL.");
 			return (null);
@@ -95,11 +126,12 @@ export class AdminDetailPage extends HotComponent
 		if (saveBtn != null)
 			saveBtn.addEventListener ("click", (e) => { e.preventDefault (); self.handleSave (page, id); });
 
-		if (deleteBtn != null)
+		if (deleteBtn != null && id)
 			deleteBtn.addEventListener ("click", (e) => { e.preventDefault (); self.handleDelete (id); });
 
-		// Load existing record.
-		self.fetchAndFill (page, id);
+		// Load existing record (skip when in create-mode).
+		if (id && !skipFetch)
+			self.fetchAndFill (page, id);
 
 		return (null);
 	}
@@ -133,13 +165,15 @@ export class AdminDetailPage extends HotComponent
 		{
 			const headers: any = { "Content-Type": "application/json" };
 			if (this.jwt) headers["Authorization"] = "Bearer " + this.jwt;
+			const body: any = { id: id };
+			if (this.isTrue (this.expanded)) body.expanded = true;
 			const res = await fetch (this.get_url, {
-				method: "POST", headers: headers, body: JSON.stringify ({ id: id })
+				method: "POST", headers: headers, body: JSON.stringify (body)
 			});
 			if (!res.ok) { this.showError (page, "Could not load: HTTP " + res.status); return; }
 			const obj = await res.json ();
 			if (obj == null) { this.showError (page, "Record not found."); return; }
-			this.populateFields (page, obj);
+			populateFields (page, obj);
 		}
 		catch (ex)
 		{
@@ -147,46 +181,10 @@ export class AdminDetailPage extends HotComponent
 		}
 	}
 
-	protected populateFields (page: HTMLElement, obj: any): void
-	{
-		const nodes = page.querySelectorAll ("[hot-field]");
-		for (let i = 0; i < nodes.length; i++)
-		{
-			const el = nodes[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-			const field = el.getAttribute ("hot-field");
-			if (field == null || field === "") continue;
-			const val = obj[field];
-			if (val == null) continue;
-			if (el instanceof HTMLInputElement && el.type === "checkbox")
-				el.checked = val === true || val === "true" || val === 1;
-			else
-				el.value = String (val);
-		}
-	}
-
-	protected collectValues (page: HTMLElement): any
-	{
-		const out: any = {};
-		const nodes = page.querySelectorAll ("[hot-field]");
-		for (let i = 0; i < nodes.length; i++)
-		{
-			const el = nodes[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-			const field = el.getAttribute ("hot-field");
-			if (field == null || field === "") continue;
-			if (el instanceof HTMLInputElement && el.type === "checkbox")
-				out[field] = el.checked;
-			else if (el instanceof HTMLInputElement && el.type === "number")
-				out[field] = el.value === "" ? null : Number (el.value);
-			else
-				out[field] = el.value;
-		}
-		return out;
-	}
-
 	protected async handleSave (page: HTMLElement, id: string): Promise<void>
 	{
-		const values = this.collectValues (page);
-		values.id = id;
+		const values = collectFieldValues (page);
+		if (id) values.id = id;
 		const body: any = this.payload_key ? { [this.payload_key]: values } : values;
 
 		const btn = page.querySelector (".fl-detail-save") as HTMLButtonElement | null;
@@ -204,6 +202,21 @@ export class AdminDetailPage extends HotComponent
 				try { const j = await res.json (); if (j && j.error) msg = j.error; } catch (e) {}
 				this.showError (page, "Save failed: " + msg);
 				return;
+			}
+			// Create flow: response body is the new id; navigate to the
+			// canonical detail URL so subsequent saves are edits, not new
+			// creates. Edit flow: stay put and flash a success indicator.
+			if (!id)
+			{
+				let newId: string | null = null;
+				try { const j = await res.json (); newId = (typeof j === "string") ? j : (j && j.id ? j.id : null); } catch (e) {}
+				if (newId)
+				{
+					const url = new URL (window.location.href);
+					url.searchParams.set (this.id_param, newId);
+					window.location.href = url.toString ();
+					return;
+				}
 			}
 			this.showSuccess (page, "Saved.");
 		}
@@ -240,8 +253,10 @@ export class AdminDetailPage extends HotComponent
 	{
 		if (this.name === "")
 			throw new Error ("admin-detail-page: id (name) is required");
-		if (this.get_url === "" || this.save_url === "")
-			throw new Error ("admin-detail-page: hot-get-url and hot-save-url are required");
+		if (this.save_url === "")
+			throw new Error ("admin-detail-page: hot-save_url is required");
+		if (this.get_url === "" && !this.isTrue (this.skip_fetch))
+			throw new Error ("admin-detail-page: hot-get_url is required unless hot-skip_fetch=1");
 
 		const deleteBtn = this.delete_url
 			? `<button type="button" class="btn btn-outline-danger fl-detail-delete">${this.delete_text}</button>`
@@ -254,7 +269,7 @@ export class AdminDetailPage extends HotComponent
 					<h1 class="h3 mb-3">${this.title}</h1>
 					<div class="fl-detail-feedback d-none"></div>
 					<div class="card mb-3"><div class="card-body">
-						<div class="row g-3">
+						<div class="row g-3 fl-detail-page-body">
 							<hot-place-here name="detailBody"></hot-place-here>
 						</div>
 					</div></div>

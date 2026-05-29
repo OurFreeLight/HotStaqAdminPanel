@@ -1,4 +1,5 @@
 import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
+import { collectFieldValues, resetFields } from "./field-io";
 
 /**
  * Self-contained inline add form. Replaces the modal opened by
@@ -149,34 +150,12 @@ export class AdminAddPanel extends HotComponent
 
 	protected collectFieldValues (root: HTMLElement): any
 	{
-		const out: any = {};
-		const nodes = root.querySelectorAll ("[hot-field]");
-		for (let i = 0; i < nodes.length; i++)
-		{
-			const el = nodes[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-			const field = el.getAttribute ("hot-field");
-			if (field == null || field === "") continue;
-
-			if (el instanceof HTMLInputElement && el.type === "checkbox")
-				out[field] = el.checked;
-			else if (el instanceof HTMLInputElement && el.type === "number")
-				out[field] = el.value === "" ? null : Number (el.value);
-			else
-				out[field] = el.value;
-		}
-		return (out);
+		return (collectFieldValues (root));
 	}
 
 	protected resetFields (root: HTMLElement): void
 	{
-		const nodes = root.querySelectorAll ("[hot-field]");
-		for (let i = 0; i < nodes.length; i++)
-		{
-			const el = nodes[i] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-			if (el instanceof HTMLInputElement && el.type === "checkbox") el.checked = false;
-			else if (el instanceof HTMLSelectElement) el.selectedIndex = 0;
-			else el.value = "";
-		}
+		resetFields (root);
 	}
 
 	protected collapsePanel (): void
