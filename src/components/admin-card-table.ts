@@ -94,15 +94,33 @@ export class AdminCardTable extends HotComponent
 				list.addEventListener ("click", (e) =>
 					{
 						const target = e.target as HTMLElement;
-						const row = target.closest (".fl-card-row") as HTMLElement | null;
+						// Scope `.fl-card-row` lookup to OUR list — otherwise
+						// when two card-tables share a row-edit and the editor
+						// is currently parented inside the OTHER list, clicks
+						// inside the editor will closest() up to that other
+						// list's row, look the id up in OUR rowsById (miss),
+						// and silently bail. Restricting closest() to this
+						// list keeps each card-table's handler authoritative
+						// over its own rows.
+						let row = target.closest (".fl-card-row") as HTMLElement | null;
+						if (row != null && !list.contains (row)) row = null;
 						if (row == null) return;
 						// Don't fire on a click inside the actions area
 						// (e.g. an inline action button has its own handler).
 						if (target.closest (".fl-card-row-actions") != null) return;
 						e.preventDefault ();
 						const id = row.getAttribute ("data-row-id");
-						if (id == null) return;
+						if (id == null || id === "")
+						{
+							console.warn (`[admin-card-table:${self.name}] row clicked but data-row-id missing`, row);
+							return;
+						}
 						const rowData = self.rowsById[id];
+						if (rowData == null)
+						{
+							console.warn (`[admin-card-table:${self.name}] data-row-id="${id}" not in rowsById (size=${Object.keys (self.rowsById).length})`, row);
+							return;
+						}
 						const editor: any = document.getElementById (self.row_edit_id);
 						if (editor == null || typeof editor.openForRow !== "function") return;
 						editor.openForRow (rowData, row, self.name);
@@ -147,16 +165,21 @@ export class AdminCardTable extends HotComponent
 			rows.forEach ((r) => { if (r && r.id) this.rowsById[r.id] = r; });
 
 			// CRITICAL: close the editor BEFORE rewriting the list's
-			// innerHTML. If the editor was open (placed as a sibling of
-			// a row via placeUnderAnchor), innerHTML would orphan it —
-			// `document.getElementById(editor.id)` would then return null
-			// permanently and every subsequent row click would silently
-			// bail. closeEditor moves the element back under <body>.
+			// innerHTML, but only if it's actually parented inside OUR
+			// list — otherwise two card-tables that share a row-edit
+			// (e.g. /proposals drafts + accepted) will keep slamming the
+			// editor closed every time the partner list re-fetches, and
+			// the user sees only the first click "work" before the
+			// partner's fetch resolves and yanks the editor out from
+			// under them.
 			if (this.row_edit_id !== "")
 			{
 				const editor: any = document.getElementById (this.row_edit_id);
-				if (editor != null && typeof editor.closeEditor === "function")
+				if (editor != null && list.contains (editor)
+					&& typeof editor.closeEditor === "function")
+				{
 					editor.closeEditor ();
+				}
 			}
 
 			if (rows.length === 0)
