@@ -235,9 +235,27 @@ export function populateField (elm: Element, val: any): void
 	if (elm instanceof HTMLInputElement)
 	{
 		if (elm.type === "checkbox")
+		{
 			elm.checked = (val === true || val === "true" || val === 1);
-		else
-			elm.value = (val == null ? "" : String (val));
+			return;
+		}
+		// HTML date inputs require the literal "YYYY-MM-DD" format and
+		// silently drop to empty string for ISO timestamps like
+		// "2026-12-15T00:00:00.000Z" — common shape from PostgreSQL
+		// DATE/TIMESTAMP columns. Coerce here so the editor pre-fills
+		// instead of going blank.
+		if (elm.type === "date" && typeof val === "string" && val.length >= 10 && val.charAt (4) === "-")
+		{
+			elm.value = val.slice (0, 10);
+			return;
+		}
+		if (elm.type === "datetime-local" && typeof val === "string" && val.length >= 16)
+		{
+			// "YYYY-MM-DDTHH:MM" — strip the seconds/ms/Z that ISO carries.
+			elm.value = val.slice (0, 16);
+			return;
+		}
+		elm.value = (val == null ? "" : String (val));
 		return;
 	}
 	if (elm instanceof HTMLSelectElement)   { elm.value = (val == null ? "" : String (val)); return; }
