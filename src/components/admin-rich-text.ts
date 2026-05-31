@@ -76,32 +76,47 @@ export class AdminRichText extends HotComponent
 
 	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
 	{
-		if (typeof Quill === "undefined")
-			return (null);
-
-		// Find our wrapper from the outer document — within an
-		// admin-detail-page or admin-row-edit, the wrapper is the closest
-		// .fl-admin-rich-text under us with our field name.
-		const wrappers = document.querySelectorAll (`.fl-admin-rich-text[hot-field="${this.field}"]`);
-		for (let i = 0; i < wrappers.length; i++)
-		{
-			const wrapper = wrappers[i] as HTMLElement;
-			const innerEl = wrapper.querySelector (".fl-admin-rich-text-quill") as HTMLElement | null;
-			if (innerEl == null) continue;
-			// Idempotent: SPA re-fires can call onPostPlace again.
-			if (Quill.find (innerEl) != null) continue;
-			const q = new Quill (innerEl, {
-				modules: { toolbar: this.toolbarConfig () },
-				placeholder: this.placeholder || undefined,
-				theme: "snow"
-			});
-			const initialJson = (wrapper.getAttribute ("data-initial-value") || "").trim ();
-			if (initialJson !== "")
+		// Defer twice (microtask + animation frame) so all sibling component
+		// onPostPlace callbacks have run AND admin-detail-page's auto-relocate
+		// has moved our wrapper into the slot. Without this, init runs while
+		// the wrapper is still a stray child at <admin-detail-page> root —
+		// Quill attaches, then the relocate moves it, which can detach it
+		// from any focus/scroll measurements Quill cached at init time.
+		const self = this;
+		const tryInit = () =>
 			{
-				try { q.setContents (JSON.parse (initialJson)); }
-				catch (ex) { /* leave editor empty */ }
-			}
-		}
+				if (typeof Quill === "undefined") return;
+				const wrappers = document.querySelectorAll (`.fl-admin-rich-text[hot-field="${self.field}"]`);
+				if (wrappers.length === 0) return;
+				for (let i = 0; i < wrappers.length; i++)
+				{
+					const wrapper = wrappers[i] as HTMLElement;
+					const innerEl = wrapper.querySelector (".fl-admin-rich-text-quill") as HTMLElement | null;
+					if (innerEl == null) continue;
+					// Idempotent: SPA re-fires + the explicit retry below can
+					// both call this. Skip if Quill is already attached.
+					if (Quill.find (innerEl) != null) continue;
+					const q = new Quill (innerEl, {
+						modules: { toolbar: self.toolbarConfig () },
+						placeholder: self.placeholder || undefined,
+						theme: "snow"
+					});
+					const initialJson = (wrapper.getAttribute ("data-initial-value") || "").trim ();
+					if (initialJson !== "")
+					{
+						try { q.setContents (JSON.parse (initialJson)); }
+						catch (ex) { /* leave editor empty */ }
+					}
+				}
+			};
+		if (typeof requestAnimationFrame === "function")
+			requestAnimationFrame (tryInit);
+		else
+			setTimeout (tryInit, 0);
+		// Also retry after 200ms for the case where the wrapper hasn't been
+		// placed into the document yet at the first tick (admin-detail-page
+		// fetchAndFill races us). The idempotent guard above keeps this safe.
+		setTimeout (tryInit, 200);
 		return (null);
 	}
 

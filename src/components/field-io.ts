@@ -225,6 +225,13 @@ export function populateField (elm: Element, val: any): void
 		return;
 	}
 
+	// Expanded relationship fields come back as { id, name, ... } when
+	// the parent admin-detail-page sends expanded=1 (so related-pickers
+	// can render chip labels without a per-id GET). For a plain select
+	// or input that's just storing an id reference, unwrap to the .id.
+	if (val != null && typeof val === "object" && !Array.isArray (val) && typeof (val as any).id === "string")
+		val = (val as any).id;
+
 	if (elm instanceof HTMLInputElement)
 	{
 		if (elm.type === "checkbox")
