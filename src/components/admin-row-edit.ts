@@ -47,8 +47,12 @@ export class AdminRowEdit extends HotComponent
 	delete_text: string;
 	/** Cancel button text. */
 	cancel_text: string;
+	/** Cancel button text when in readonly mode (shown as "Close"). */
+	close_text: string;
 	/** Confirmation prompt for delete. */
 	delete_confirm: string;
+	/** "1" to render the editor read-only: fields disabled, save/delete hidden, cancel relabeled to Close. */
+	readonly: string;
 
 	/** The element that holds the form template (parked offscreen by default). */
 	protected templateEl: HTMLElement | null = null;
@@ -71,7 +75,15 @@ export class AdminRowEdit extends HotComponent
 		this.save_text       = "Save";
 		this.delete_text     = "Delete";
 		this.cancel_text     = "Cancel";
+		this.close_text      = "Close";
 		this.delete_confirm  = "Delete this record?";
+		this.readonly        = "";
+	}
+
+	/** True when the editor should render in read-only / view-only mode. */
+	protected isReadonly (): boolean
+	{
+		return (this.readonly === "1" || this.readonly === "true");
 	}
 
 	onPostPlace (parentHtmlElement: HTMLElement, htmlElement: HTMLElement): HTMLElement
@@ -158,9 +170,61 @@ export class AdminRowEdit extends HotComponent
 		this.ownerListId = ownerListId;
 
 		this.populateFields (root, rowData);
+		this.applyReadonly (root);
 		this.placeUnderAnchor (root, anchor);
 		this.expand (root);
 		this.clearFeedback (root);
+	}
+
+	/**
+	 * Apply the current readonly state to every form input, Quill, and
+	 * related-picker, and toggle the save/delete buttons. Runs on every
+	 * openForRow so Quill (which often initializes late) is caught even
+	 * if it was still booting at first open.
+	 */
+	protected applyReadonly (root: HTMLElement): void
+	{
+		const ro = this.isReadonly ();
+		const nodes = root.querySelectorAll ("[hot-field]");
+		for (let i = 0; i < nodes.length; i++)
+		{
+			const el = nodes[i] as HTMLElement;
+			if (el.classList.contains ("fl-admin-rich-text"))
+			{
+				const inner = el.querySelector (".fl-admin-rich-text-quill") as HTMLElement | null;
+				const QuillRef = (window as any).Quill;
+				if (inner != null && typeof QuillRef !== "undefined")
+				{
+					const q = QuillRef.find (inner);
+					if (q != null && typeof q.enable === "function") q.enable (!ro);
+				}
+				const tb = el.querySelector (".ql-toolbar") as HTMLElement | null;
+				if (tb != null) tb.style.display = ro ? "none" : "";
+				continue;
+			}
+			if (el.classList.contains ("fl-admin-related-picker"))
+			{
+				const search = el.querySelector (".fl-arp-search") as HTMLInputElement | null;
+				if (search != null) { search.disabled = ro; search.style.display = ro ? "none" : ""; }
+				el.querySelectorAll (".fl-arp-chip-remove, .fl-arp-remove").forEach (
+					(b) => { (b as HTMLElement).style.display = ro ? "none" : ""; });
+				continue;
+			}
+			if (el.classList.contains ("fl-admin-approval-panel"))
+			{
+				el.style.display = ro ? "none" : "";
+				continue;
+			}
+			if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement)
+				el.disabled = ro;
+		}
+
+		const saveBtn   = root.querySelector (".fl-row-edit-save")   as HTMLElement | null;
+		const deleteBtn = root.querySelector (".fl-row-edit-delete") as HTMLElement | null;
+		const cancelBtn = root.querySelector (".fl-row-edit-cancel") as HTMLElement | null;
+		if (saveBtn   != null) saveBtn.style.display   = ro ? "none" : "";
+		if (deleteBtn != null) deleteBtn.style.display = ro ? "none" : "";
+		if (cancelBtn != null) cancelBtn.textContent   = ro ? this.close_text : this.cancel_text;
 	}
 
 	public close (): void

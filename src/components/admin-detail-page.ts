@@ -60,6 +60,8 @@ export class AdminDetailPage extends HotComponent
 	expanded: string;
 	/** "1" / "true" → omit the get fetch entirely (create-mode pages without an existing id). */
 	skip_fetch: string;
+	/** "1" / "true" → render the page in read-only / view-only mode (no save bar, all fields disabled). */
+	readonly: string;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -80,6 +82,7 @@ export class AdminDetailPage extends HotComponent
 		this.delete_confirm  = "Are you sure you want to delete this?";
 		this.expanded        = "0";
 		this.skip_fetch      = "0";
+		this.readonly        = "";
 	}
 
 	protected isTrue (s: string): boolean
@@ -132,6 +135,8 @@ export class AdminDetailPage extends HotComponent
 		// Load existing record (skip when in create-mode).
 		if (id && !skipFetch)
 			self.fetchAndFill (page, id);
+		else
+			self.applyReadonly (page);
 
 		return (null);
 	}
@@ -174,6 +179,7 @@ export class AdminDetailPage extends HotComponent
 			const obj = await res.json ();
 			if (obj == null) { this.showError (page, "Record not found."); return; }
 			populateFields (page, obj);
+			this.applyReadonly (page);
 		}
 		catch (ex)
 		{
@@ -249,11 +255,55 @@ export class AdminDetailPage extends HotComponent
 		}
 	}
 
+	/**
+	 * Apply the current readonly state to every form input, Quill, and
+	 * related-picker. Runs after fetchAndFill so the populated values
+	 * stick before disabling.
+	 */
+	protected applyReadonly (page: HTMLElement): void
+	{
+		const ro = this.isTrue (this.readonly);
+		const nodes = page.querySelectorAll ("[hot-field]");
+		for (let i = 0; i < nodes.length; i++)
+		{
+			const el = nodes[i] as HTMLElement;
+			if (el.classList.contains ("fl-admin-rich-text"))
+			{
+				const inner = el.querySelector (".fl-admin-rich-text-quill") as HTMLElement | null;
+				const QuillRef = (window as any).Quill;
+				if (inner != null && typeof QuillRef !== "undefined")
+				{
+					const q = QuillRef.find (inner);
+					if (q != null && typeof q.enable === "function") q.enable (!ro);
+				}
+				const tb = el.querySelector (".ql-toolbar") as HTMLElement | null;
+				if (tb != null) tb.style.display = ro ? "none" : "";
+				continue;
+			}
+			if (el.classList.contains ("fl-admin-related-picker"))
+			{
+				const search = el.querySelector (".fl-arp-search") as HTMLInputElement | null;
+				if (search != null) { search.disabled = ro; search.style.display = ro ? "none" : ""; }
+				el.querySelectorAll (".fl-arp-chip-remove, .fl-arp-remove").forEach (
+					(b) => { (b as HTMLElement).style.display = ro ? "none" : ""; });
+				continue;
+			}
+			if (el.classList.contains ("fl-admin-approval-panel"))
+			{
+				el.style.display = ro ? "none" : "";
+				continue;
+			}
+			if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement)
+				el.disabled = ro;
+		}
+	}
+
 	output (): string | HotComponentOutput[]
 	{
 		if (this.name === "")
 			throw new Error ("admin-detail-page: id (name) is required");
-		if (this.save_url === "")
+		const ro = this.isTrue (this.readonly);
+		if (this.save_url === "" && !ro)
 			throw new Error ("admin-detail-page: hot-save_url is required");
 		if (this.get_url === "" && !this.isTrue (this.skip_fetch))
 			throw new Error ("admin-detail-page: hot-get_url is required unless hot-skip_fetch=1");
@@ -262,9 +312,25 @@ export class AdminDetailPage extends HotComponent
 			? `<button type="button" class="btn btn-outline-danger fl-detail-delete">${this.delete_text}</button>`
 			: "";
 
+		// In readonly mode, omit the entire save bar (no save, no delete).
+		const saveBar = ro
+			? ""
+			: `<div class="fl-detail-save-bar">
+					<div class="container d-flex justify-content-between align-items-center" style="max-width:880px;">
+						${deleteBtn}
+						<button type="button" class="btn btn-primary fl-detail-save ms-auto">${this.save_text}</button>
+					</div>
+				</div>`;
+
+		// readonly pages don't need the extra bottom padding the save bar
+		// would otherwise overlap.
+		const containerStyle = ro
+			? "max-width:880px;padding:1.5rem 1rem 3rem;"
+			: "max-width:880px;padding:1.5rem 1rem 7rem;";
+
 		return (`
 			<div id="${this.name}" class="fl-detail-page">
-				<div class="container" style="max-width:880px;padding:1.5rem 1rem 7rem;">
+				<div class="container" style="${containerStyle}">
 					<div class="mb-3"><a href="${this.back_url}" class="text-muted small text-decoration-none">${this.back_text}</a></div>
 					<h1 class="h3 mb-3">${this.title}</h1>
 					<div class="fl-detail-feedback d-none"></div>
@@ -274,12 +340,7 @@ export class AdminDetailPage extends HotComponent
 						</div>
 					</div></div>
 				</div>
-				<div class="fl-detail-save-bar">
-					<div class="container d-flex justify-content-between align-items-center" style="max-width:880px;">
-						${deleteBtn}
-						<button type="button" class="btn btn-primary fl-detail-save ms-auto">${this.save_text}</button>
-					</div>
-				</div>
+				${saveBar}
 			</div>`);
 	}
 }
