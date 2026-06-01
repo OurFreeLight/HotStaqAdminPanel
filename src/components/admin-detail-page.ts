@@ -62,6 +62,10 @@ export class AdminDetailPage extends HotComponent
 	skip_fetch: string;
 	/** "1" / "true" → render the page in read-only / view-only mode (no save bar, all fields disabled). */
 	readonly: string;
+	/** When set (e.g. "name"), the page heading IS the editable field for that key. No separate H1 + duplicate form-field — the heading itself is the input. */
+	title_field: string;
+	/** Placeholder text for the title input when title_field is set. */
+	title_placeholder: string;
 
 	constructor (copy: HotComponent | HotStaq, api: HotAPI)
 	{
@@ -83,6 +87,8 @@ export class AdminDetailPage extends HotComponent
 		this.expanded        = "0";
 		this.skip_fetch      = "0";
 		this.readonly        = "";
+		this.title_field     = "";
+		this.title_placeholder = "Untitled";
 	}
 
 	protected isTrue (s: string): boolean
@@ -328,11 +334,20 @@ export class AdminDetailPage extends HotComponent
 			? "max-width:880px;padding:1.5rem 1rem 3rem;"
 			: "max-width:880px;padding:1.5rem 1rem 7rem;";
 
+		// Either a static H1 (when title_field is empty) or a giant input
+		// the user can edit directly (when title_field is set). The input
+		// has the same hot-field marker as any other form field so
+		// populate / collect picks it up — there is no duplicate form
+		// field elsewhere on the page.
+		const titleEl = this.title_field
+			? `<input type="text" hot-field="${this.title_field}" class="fl-detail-title-input" placeholder="${this.title_placeholder}" />`
+			: (this.title ? `<h1 class="h3 mb-3">${this.title}</h1>` : "");
+
 		return (`
 			<div id="${this.name}" class="fl-detail-page">
 				<div class="container" style="${containerStyle}">
 					<div class="mb-3"><a href="${this.back_url}" class="text-muted small text-decoration-none">${this.back_text}</a></div>
-					<h1 class="h3 mb-3">${this.title}</h1>
+					${titleEl}
 					<div class="fl-detail-feedback d-none"></div>
 					<div class="card mb-3"><div class="card-body">
 						<div class="row g-3 fl-detail-page-body">
