@@ -208,8 +208,11 @@ export function collectField (elm: Element): any
 
 /**
  * Push a value into one [hot-field] element. `null`/`undefined` clears.
+ * `parentObj` (optional) is the full row object from which `val` was read —
+ * components that need cross-field context (e.g. admin-file-upload needs
+ * the row's id to build its download link) read from it.
  */
-export function populateField (elm: Element, val: any): void
+export function populateField (elm: Element, val: any, parentObj: any = null): void
 {
 	if (!(elm instanceof HTMLElement)) return;
 
@@ -234,7 +237,11 @@ export function populateField (elm: Element, val: any): void
 
 	if (elm.classList.contains ("fl-admin-file-upload"))
 	{
-		fileUploadWrite (elm, val);
+		// Prefer the row id over `val` — the API typically doesn't return a
+		// separate file field on get; the download link is derived from
+		// `/v1/.../getFile?id=<rowId>`.
+		const idForLink = (parentObj != null && parentObj.id != null) ? parentObj.id : val;
+		fileUploadWrite (elm, idForLink);
 		return;
 	}
 
@@ -420,8 +427,12 @@ export function populateFields (root: HTMLElement, obj: any): void
 		const el = nodes[i];
 		const field = el.getAttribute ("hot-field");
 		if (field == null || field === "") continue;
-		if (!(field in obj)) continue;
-		populateField (el, obj[field]);
+		// admin-file-upload doesn't need its own key in the response — it
+		// derives the download link from obj.id. Let the file-upload branch
+		// of populateField run regardless of whether `field in obj`.
+		const isFileUpload = (el instanceof HTMLElement) && el.classList.contains ("fl-admin-file-upload");
+		if (!isFileUpload && !(field in obj)) continue;
+		populateField (el, obj[field], obj);
 	}
 }
 
