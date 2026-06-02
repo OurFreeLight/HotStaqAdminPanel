@@ -260,13 +260,33 @@
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.35);
 }
 
-/* ---- admin-disclaimer ---- */
+/* ---- admin-disclaimer ----
+   The .card-body overlays a translucent indigo (--flap-accent-soft) on
+   whatever the parent .card paints. Bootstrap's default --bs-card-bg
+   is white and we don't toggle the bootstrap theme attribute, so in
+   dark mode the white card showed through the translucent overlay —
+   the body text looked like medium-grey-on-pale-lilac and the heading
+   inherited a near-white color that washed out completely. Force the
+   card surface + text color from our own tokens so both modes get a
+   proper contrast pair. */
 .fl-disclaimer {
     border-color: var(--flap-border);
+    background: var(--flap-surface);
+    color: var(--flap-text);
 }
 
 .fl-disclaimer .card-body {
     background: var(--flap-accent-soft);
+    color: var(--flap-text);
+}
+
+.fl-disclaimer h1, .fl-disclaimer h2, .fl-disclaimer h3,
+.fl-disclaimer h4, .fl-disclaimer h5, .fl-disclaimer h6 {
+    color: var(--flap-text);
+}
+
+.fl-disclaimer .text-muted {
+    color: var(--flap-text-muted) !important;
 }
 
 /* ---- admin-eyebrow-heading ---- */
