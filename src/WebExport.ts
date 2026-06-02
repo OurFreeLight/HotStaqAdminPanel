@@ -33,7 +33,10 @@ async function buildAssets (): Promise<any>
 				"AdminRowEdit",
 				"AdminRichText",
 				"AdminRelatedPicker",
-				"AdminApprovalPanel"]
+				"AdminApprovalPanel",
+				"AdminTabPage",
+				"AdminTab",
+				"AdminFileUpload"]
 		});
 }
 

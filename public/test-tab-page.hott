@@ -1,0 +1,61 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-tab-page testbed. Covers multi-tab navigation: declare a
+	// tab-page with three tab children, click each tab, confirm the
+	// corresponding panel becomes the active/visible one.
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-tab-page testbed",
+			PANEL_NAME: "admin-tab-page",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-tab-page testbed</h3>
+
+	<admin-tab-page name="tabsDemo">
+		<admin-tab name="tabOv" hot-label="Overview" hot-active="1">
+			<div id="tabOverview">Overview content</div>
+		</admin-tab>
+		<admin-tab name="tabDt" hot-label="Details">
+			<div id="tabDetails">Details content</div>
+		</admin-tab>
+		<admin-tab name="tabHi" hot-label="History">
+			<div id="tabHistory">History content</div>
+		</admin-tab>
+	</admin-tab-page>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("TabPage_RendersAllTabs", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				var nav = document.querySelector ('#tabsDemo .nav-tabs, #tabsDemo .fl-tab-nav, #tabsDemo [role="tablist"]');
+				if (nav == null) return JSON.stringify ({err: 'tablist missing'});
+				var tabs = nav.querySelectorAll ('button, a, .nav-link');
+				var labels = [];
+				for (var i = 0; i < tabs.length; i++) labels.push (tabs[i].textContent.trim ());
+				return JSON.stringify ({ count: tabs.length, labels: labels });
+			`);
+			await driver.assert (r.indexOf ('"Overview"') >= 0 && r.indexOf ('"Details"') >= 0 && r.indexOf ('"History"') >= 0,
+				"tab-page should render a tablist with all three labels. Got: " + r);
+		});
+
+	Hot.CurrentPage.createTestPath ("TabPage_FirstTabActiveByDefault", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				var ov = document.getElementById ('tabOverview');
+				var dt = document.getElementById ('tabDetails');
+				var ovVisible = ov ? (ov.offsetParent !== null) : null;
+				var dtVisible = dt ? (dt.offsetParent !== null) : null;
+				return JSON.stringify ({ ovVisible: ovVisible, dtVisible: dtVisible });
+			`);
+			await driver.assert (r.indexOf ('"ovVisible":true') >= 0,
+				"first tab content (Overview) should be visible by default. Got: " + r);
+		});
+*>

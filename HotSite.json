@@ -12,9 +12,10 @@
 	"testing": {
 		"web": {
 			"tester": "HotTesterMochaSelenium",
+			"createNewTester": false,
 			"testerAPIUrl": "http://127.0.0.1:8182",
 			"maps": [
-				"Index"
+				"AdminPanelTest"
 			]
 		}
 	},
@@ -22,10 +23,62 @@
 		"/": {
 			"name": "Index",
 			"url": "./index.hott",
-			"api": "AppAPI",
-			"map": {
-				"CreateAccount": "page:Index -> Index-SignIn"
-			}
+			"api": "AppAPI"
+		},
+		"/test-row-edit": {
+			"name": "TestRowEdit",
+			"url": "./test-row-edit.hott",
+			"api": "AppAPI"
+		},
+		"/test-card-table": {
+			"name": "TestCardTable",
+			"url": "./test-card-table.hott",
+			"api": "AppAPI"
+		},
+		"/test-form-field": {
+			"name": "TestFormField",
+			"url": "./test-form-field.hott",
+			"api": "AppAPI"
+		},
+		"/test-add-panel": {
+			"name": "TestAddPanel",
+			"url": "./test-add-panel.hott",
+			"api": "AppAPI"
+		},
+		"/test-detail-page": {
+			"name": "TestDetailPage",
+			"url": "./test-detail-page.hott",
+			"api": "AppAPI"
+		},
+		"/test-related-picker": {
+			"name": "TestRelatedPicker",
+			"url": "./test-related-picker.hott",
+			"api": "AppAPI"
+		},
+		"/test-rich-text": {
+			"name": "TestRichText",
+			"url": "./test-rich-text.hott",
+			"api": "AppAPI"
+		},
+		"/test-approval-panel": {
+			"name": "TestApprovalPanel",
+			"url": "./test-approval-panel.hott",
+			"api": "AppAPI"
+		},
+		"/test-file-upload": {
+			"name": "TestFileUpload",
+			"url": "./test-file-upload.hott",
+			"api": "AppAPI"
+		},
+		"/test-tab-page": {
+			"name": "TestTabPage",
+			"url": "./test-tab-page.hott",
+			"api": "AppAPI"
+		},
+		"/test-visual": {
+			"name": "TestVisual",
+			"url": "./test-visual.hott",
+			"api": "AppAPI"
 		}
 	},
 	"apis": {
@@ -34,6 +87,35 @@
 			"libraryName": "AdminPanelWeb",
 			"apiName": "AppAPI",
 			"filepath": "./build/AppAPI.js"
+		}
+	},
+	"web": {
+		"AdminPanelTest": {
+			"map": [
+				"url:/test-row-edit -> RowEdit_AllChildCounts_Render",
+				"url:/test-row-edit -> RowEdit_SingleChild_OpensWithRowData",
+				"url:/test-row-edit -> RowEdit_Readonly_HidesSaveAndDisablesInputs",
+				"url:/test-card-table -> CardTable_Basic_RendersFiveRows",
+				"url:/test-card-table -> CardTable_EmptySearch_RendersEmptyMessage",
+				"url:/test-card-table -> CardTable_ExposesRefreshList",
+				"url:/test-form-field -> FormField_AllControls_Render",
+				"url:/test-form-field -> FormField_Required_RendersAsterisk",
+				"url:/test-form-field -> FormField_Help_RendersHelpText",
+				"url:/test-form-field -> FormField_SelectOptions_PopulateFromCsv",
+				"url:/test-add-panel -> AddPanel_Render_StartsCollapsed",
+				"url:/test-add-panel -> AddPanel_RelocatesChildren",
+				"url:/test-detail-page -> DetailPage_Render",
+				"url:/test-detail-page -> DetailPage_PopulatesFromIdParam",
+				"url:/test-related-picker -> RelatedPicker_Render",
+				"url:/test-related-picker -> RelatedPicker_PreloadedRendersChips",
+				"url:/test-rich-text -> RichText_RendersWrappers",
+				"url:/test-approval-panel -> ApprovalPanel_AdminSeesControls",
+				"url:/test-file-upload -> FileUpload_RendersBothStates",
+				"url:/test-tab-page -> TabPage_RendersAllTabs",
+				"url:/test-tab-page -> TabPage_FirstTabActiveByDefault",
+				"url:/test-visual -> Visual_EyebrowHeading_Renders",
+				"url:/test-visual -> Visual_Disclaimer_Renders"
+			]
 		}
 	},
 	"dependencies": {

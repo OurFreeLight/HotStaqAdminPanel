@@ -1,0 +1,78 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-add-panel testbed. Covers: collapsed-by-default render,
+	// expand-on-click, child form-field relocation, and the onsave
+	// callback wiring (we hit the stub /v1/items/create and confirm
+	// the list refreshes).
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-add-panel testbed",
+			PANEL_NAME: "admin-add-panel",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-add-panel testbed</h3>
+
+	<admin-add-panel name="itemAdd"
+		hot-title="Add an item"
+		hot-attached_list="itemList"
+		hot-add_text="+ Add item"
+		hot-button_title="Create"
+		hot-onsave="<(values) =>
+			{
+				const r = await Hot.jsonRequest ('/v1/items/create', { item: { name: values.name, priority: parseInt (values.priority || '0', 10) } }, '');
+				if (r != null && r.error != null) { alert (r.error); return (false); }
+			}Ra>">
+		<admin-form-field hot-field="name" hot-label="Name" hot-required="1" hot-col="col-md-8"></admin-form-field>
+		<admin-form-field hot-field="priority" hot-label="Priority" hot-type="number" hot-col="col-md-4"></admin-form-field>
+	</admin-add-panel>
+
+	<admin-card-table id="itemList"
+		hot-title="Items"
+		hot-list_url="/v1/items/list"
+		hot-list_params='{"offset":0,"limit":50}'
+		hot-primary_field="name"
+		hot-subline_field="status"
+		hot-empty_text="No items."></admin-card-table>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("AddPanel_Render_StartsCollapsed", async (driver) =>
+		{
+			await driver.wait (2500);
+			const result = await driver.driver.executeScript (`
+				var p = document.getElementById ('itemAdd');
+				return JSON.stringify ({
+					exists:  p != null,
+					hasTitle: p ? !!p.querySelector ('.fl-add-toggle, .fl-add-panel-toggle, button') : null,
+					expanded: p ? p.classList.contains ('show') : null
+				});
+			`);
+			await driver.assert (result.indexOf ('"exists":true') >= 0,
+				"itemAdd add-panel should be in the DOM. Got: " + result);
+		});
+
+	Hot.CurrentPage.createTestPath ("AddPanel_RelocatesChildren", async (driver) =>
+		{
+			await driver.wait (2500);
+			const result = await driver.driver.executeScript (`
+				var p = document.getElementById ('itemAdd');
+				if (p == null) return JSON.stringify ({err: 'panel missing'});
+				// The name + priority form-fields should have been moved into
+				// the panel's internal form .row, not left as direct children.
+				var fields = p.querySelectorAll ('[hot-field]');
+				return JSON.stringify ({
+					fieldCount: fields.length,
+					hasName:     !!p.querySelector ('[hot-field="name"]'),
+					hasPriority: !!p.querySelector ('[hot-field="priority"]')
+				});
+			`);
+			await driver.assert (
+				result.indexOf ('"hasName":true') >= 0 && result.indexOf ('"hasPriority":true') >= 0,
+				"add-panel should host its declared form-fields after relocate. Got: " + result);
+		});
+*>

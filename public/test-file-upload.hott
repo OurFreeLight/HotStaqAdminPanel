@@ -1,0 +1,48 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-file-upload testbed. Covers: render, current-value display,
+	// and clear-button visibility. The two-phase POST flow is covered
+	// transitively by admin-row-edit's handleSave when files are present;
+	// here we focus on the component's own DOM contract.
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-file-upload testbed",
+			PANEL_NAME: "admin-file-upload",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-file-upload testbed</h3>
+
+	<h5 class="mt-3">No current value (empty state)</h5>
+	<admin-file-upload hot-field="file_empty" hot-label="Attachment"
+		hot-accept=".pdf,.png,.jpg"></admin-file-upload>
+
+	<h5 class="mt-3">With current value (show + clear button)</h5>
+	<admin-file-upload hot-field="file_existing" hot-label="Attachment"
+		hot-current_name="existing-file.pdf"
+		hot-current_url="/uploads/existing-file.pdf"
+		hot-accept=".pdf"></admin-file-upload>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("FileUpload_RendersBothStates", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				var uploads = document.querySelectorAll ('.fl-admin-file-upload');
+				return JSON.stringify ({
+					count: uploads.length,
+					firstHasInput:  uploads.length > 0 && uploads[0].querySelector ('.fl-afu-input') != null,
+					secondHasClear: uploads.length > 1 && uploads[1].querySelector ('.fl-afu-clear') != null
+				});
+			`);
+			await driver.assert (r.indexOf ('"count":2') >= 0,
+				"two file-upload instances should render. Got: " + r);
+			await driver.assert (r.indexOf ('"firstHasInput":true') >= 0,
+				"file-upload should expose .fl-afu-input. Got: " + r);
+		});
+*>

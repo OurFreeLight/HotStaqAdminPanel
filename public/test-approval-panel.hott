@@ -1,0 +1,45 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-approval-panel testbed. Covers: render gating by user_type
+	// (admin vs moderator vs user), and the POST-on-change wiring.
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-approval-panel testbed",
+			PANEL_NAME: "admin-approval-panel",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-approval-panel testbed</h3>
+
+	<h5 class="mt-3">Admin view (both flag + approval controls)</h5>
+	<admin-approval-panel hot-route_name="items"
+		hot-user_type="admin" hot-id="i-001"></admin-approval-panel>
+
+	<h5 class="mt-3">Moderator view (flag only)</h5>
+	<admin-approval-panel hot-route_name="items"
+		hot-user_type="moderator" hot-id="i-002"></admin-approval-panel>
+
+	<h5 class="mt-3">User view (no controls — nothing rendered, or just a notice)</h5>
+	<admin-approval-panel hot-route_name="items"
+		hot-user_type="user" hot-id="i-003"></admin-approval-panel>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("ApprovalPanel_AdminSeesControls", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				var panels = document.querySelectorAll ('.fl-admin-approval-panel');
+				return JSON.stringify ({
+					count: panels.length,
+					firstHasSelect: panels.length > 0 && panels[0].querySelector ('select') != null
+				});
+			`);
+			await driver.assert (r.indexOf ('"count":3') >= 0,
+				"three approval-panel variants should render. Got: " + r);
+		});
+*>

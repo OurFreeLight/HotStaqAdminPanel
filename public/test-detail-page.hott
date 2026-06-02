@@ -1,0 +1,67 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-detail-page testbed. Drives the URL → GET → populate → save
+	// loop. We pre-stuff ?id=i-001 in the URL so the component's id_param
+	// + get_url combo fetches an item and populates the form.
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-detail-page testbed",
+			PANEL_NAME: "admin-detail-page",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-detail-page testbed</h3>
+	<p class="text-muted small mb-3">Tests pass ?id=i-001 on the URL — the page should fetch that item from /v1/items/get and populate the fields.</p>
+
+	<admin-detail-page name="itemDetail"
+		hot-title="Item detail"
+		hot-back_url="/test/card-table" hot-back_text="Back to list"
+		hot-get_url="/v1/items/get"
+		hot-save_url="/v1/items/edit"
+		hot-delete_url="/v1/items/delete"
+		hot-payload_key="item"
+		hot-id_param="id">
+		<admin-form-field hot-field="name" hot-label="Name" hot-required="1" hot-col="col-md-8"></admin-form-field>
+		<admin-form-field hot-field="priority" hot-label="Priority" hot-type="number" hot-col="col-md-4"></admin-form-field>
+		<admin-form-field hot-field="status" hot-label="Status" hot-control="select"
+			hot-options="AwaitingReview:Awaiting,InReview:In review,Approved:Approved,Rejected:Rejected"
+			hot-col="col-md-6"></admin-form-field>
+		<admin-form-field hot-field="description" hot-label="Description" hot-control="textarea" hot-rows="3"
+			hot-col="col-md-12"></admin-form-field>
+	</admin-detail-page>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("DetailPage_Render", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				var p = document.getElementById ('itemDetail');
+				return JSON.stringify ({ exists: p != null });
+			`);
+			await driver.assert (r.indexOf ('"exists":true') >= 0,
+				"detail-page itemDetail must render. Got: " + r);
+		});
+
+	Hot.CurrentPage.createTestPath ("DetailPage_PopulatesFromIdParam", async (driver) =>
+		{
+			// Navigate directly with the id query param so the detail-page's
+			// own fetch fires.
+			await driver.navigate ("/test-detail-page?id=i-001");
+			await driver.wait (5000);
+			const r = await driver.driver.executeScript (`
+				var name = document.querySelector ('#itemDetail [hot-field="name"]');
+				var pri  = document.querySelector ('#itemDetail [hot-field="priority"]');
+				return JSON.stringify ({
+					nameVal: name ? name.value : null,
+					priVal:  pri  ? pri.value  : null
+				});
+			`);
+			await driver.assert (r.indexOf ('"nameVal":"Alpha"') >= 0,
+				"detail-page should populate name='Alpha' from the i-001 stub. Got: " + r);
+		});
+*>

@@ -34,9 +34,26 @@ export class AdminTabPage extends HotComponent
 		const root = document.getElementById (this.name);
 		if (root == null) return (null);
 
+		// admin-tab-page's onPostPlace runs BEFORE its <admin-tab> children
+		// have a chance to register + render into .fl-atp-pane divs (the
+		// HotStaq parent-first registration order). If we built the nav
+		// inline here, the pane-collection loop below would see only raw
+		// <admin-tab> tags, find zero .fl-atp-pane elements, and leave the
+		// nav empty — that's the bug the testbed catches. Defer one tick
+		// so child admin-tab registration completes first.
+		setTimeout (() => self.buildTabs (root), 0);
+		return (null);
+	}
+
+	protected buildTabs (root: HTMLElement): void
+	{
+		const self = this;
 		const nav   = root.querySelector (".fl-atp-nav")     as HTMLElement | null;
 		const frame = root.querySelector (".fl-atp-content") as HTMLElement | null;
-		if (nav == null || frame == null) return (null);
+		if (nav == null || frame == null) return;
+
+		// Idempotent: don't rebuild if a previous run already filled the nav.
+		if (nav.children.length > 0) return;
 
 		// Relocate every child .fl-atp-pane into the content frame. The
 		// framework appends admin-tab outputs as direct children of root.
@@ -60,7 +77,7 @@ export class AdminTabPage extends HotComponent
 					panes.push (el);
 			});
 
-		if (panes.length === 0) return (null);
+		if (panes.length === 0) return;
 
 		// Decide which tab starts active. URL hash wins; otherwise the first
 		// pane. Hash matches against the pane's id.
@@ -110,8 +127,6 @@ export class AdminTabPage extends HotComponent
 				try { history.replaceState (null, "", "#" + paneId); }
 				catch (ex) { window.location.hash = paneId; }
 			});
-
-		return (null);
 	}
 
 	protected activateTab (root: HTMLElement, paneId: string): void

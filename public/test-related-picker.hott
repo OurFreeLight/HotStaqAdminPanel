@@ -1,0 +1,66 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-related-picker testbed. Covers: initial render with no value,
+	// pre-populated chips from hot-value + hot-display_value, and the
+	// typeahead → suggest → click → chip flow against the /v1/people/list
+	// stub. Quill/Datatables timing isn't relevant here.
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-related-picker testbed",
+			PANEL_NAME: "admin-related-picker",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-related-picker testbed</h3>
+
+	<h5 class="mt-3">Empty (no preset value)</h5>
+	<admin-related-picker hot-field="people_empty"
+		hot-label="People"
+		hot-list_url="/v1/people/list"
+		hot-placeholder="Search people…"></admin-related-picker>
+
+	<h5 class="mt-3">Preloaded (two chips visible immediately)</h5>
+	<admin-related-picker hot-field="people_preload"
+		hot-label="People"
+		hot-list_url="/v1/people/list"
+		hot-value="p-001,p-002"
+		hot-display_value="p-001:Alice Anderson,p-002:Bob Brown"></admin-related-picker>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("RelatedPicker_Render", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				var pickers = document.querySelectorAll ('.fl-admin-related-picker');
+				return JSON.stringify ({
+					count: pickers.length,
+					hasSearch: pickers.length > 0 && !!pickers[0].querySelector ('.fl-arp-search'),
+					hasChipsContainer: pickers.length > 0 && !!pickers[0].querySelector ('.fl-arp-chips')
+				});
+			`);
+			await driver.assert (r.indexOf ('"count":2') >= 0,
+				"two related-picker instances should render. Got: " + r);
+			await driver.assert (r.indexOf ('"hasSearch":true') >= 0,
+				"related-picker should expose the typeahead .fl-arp-search input. Got: " + r);
+		});
+
+	Hot.CurrentPage.createTestPath ("RelatedPicker_PreloadedRendersChips", async (driver) =>
+		{
+			await driver.wait (3000);
+			const r = await driver.driver.executeScript (`
+				var preload = document.querySelector ('[hot-field="people_preload"]');
+				if (preload == null) return JSON.stringify ({err: 'preload picker missing'});
+				var chips = preload.querySelectorAll ('.fl-arp-chips li, .fl-arp-chips .fl-arp-chip');
+				var labels = [];
+				for (var i = 0; i < chips.length; i++) labels.push (chips[i].textContent.trim ());
+				return JSON.stringify ({ chipCount: chips.length, labels: labels });
+			`);
+			await driver.assert (r.indexOf ('Alice Anderson') >= 0 || r.indexOf ('Bob Brown') >= 0,
+				"preloaded picker should render chips with display names from hot-display_value. Got: " + r);
+		});
+*>

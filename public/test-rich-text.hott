@@ -1,0 +1,44 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-rich-text testbed. Asserts the component renders + the inner
+	// Quill instance attaches (it's lazy-loaded by onPostPlace). We don't
+	// drive content into Quill in tests — that's covered transitively by
+	// the field-io tests in the DAO. Here we just confirm the wrapper
+	// shows up and the toolbar is present.
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-rich-text testbed",
+			PANEL_NAME: "admin-rich-text",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-rich-text testbed</h3>
+
+	<admin-rich-text hot-field="rt_basic" hot-label="Description"
+		hot-placeholder="Write something…"></admin-rich-text>
+
+	<admin-rich-text hot-field="rt_full"  hot-label="Full toolbar"
+		hot-toolbar="full" hot-height="180px"></admin-rich-text>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("RichText_RendersWrappers", async (driver) =>
+		{
+			await driver.wait (4000);
+			const r = await driver.driver.executeScript (`
+				var rts = document.querySelectorAll ('.fl-admin-rich-text');
+				return JSON.stringify ({
+					count: rts.length,
+					hasQuillInner: rts.length > 0 && rts[0].querySelector ('.fl-admin-rich-text-quill') != null
+				});
+			`);
+			await driver.assert (r.indexOf ('"count":2') >= 0,
+				"two rich-text wrappers should render. Got: " + r);
+			await driver.assert (r.indexOf ('"hasQuillInner":true') >= 0,
+				"each rich-text wrapper should host an inner .fl-admin-rich-text-quill mount target. Got: " + r);
+		});
+*>

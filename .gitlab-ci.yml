@@ -1,10 +1,17 @@
 # @hotstaq/admin-panel — GitLab CI/CD Pipeline
-# Triggers on every push to main.
-# Runs the full prepublishOnly build (build-web) and publishes to npm.
+# Triggers on every push.
+#  - build: TS compile + webpack bundle + module/JS asset copy
+#  - test:  HotTesterMochaSelenium headless suite over the testbed pages in
+#           public/test-*.hott (covers admin-row-edit child-count cases,
+#           card-table, form-field controls, add-panel, detail-page,
+#           related-picker, rich-text, approval-panel, file-upload, tab-page,
+#           and the visual components — see public/test-*.hott).
+#  - publish: on `main` only. Runs `npm publish` against the npm registry.
 # Requires NPM_TOKEN set as a GitLab CI/CD variable.
 
 stages:
   - build
+  - test
   - publish
 
 build:
@@ -18,13 +25,49 @@ build:
       - build/
       - build-web/
       - public/js/
-    expire_in: 1 hour
+      - public/hotstaq_modules/
+    expire_in: 1 day
+
+# Headless component suite — gates publish so a broken bundle never ships.
+# Uses Chromium provided by the headless-chrome image; falls back to
+# installing if absent. The runner image carries puppeteer's chrome, which
+# selenium-webdriver picks up via PATH.
+test:
+  stage: test
+  image: node:20-bookworm
+  dependencies:
+    - build
+  before_script:
+    # Chromium + minimum X11 stack. The headless=new flag still needs a
+    # functional libnss/libgbm/etc. — bookworm's chromium meta-pulls them.
+    - apt-get update -y
+    - apt-get install -y --no-install-recommends chromium chromium-driver xvfb fonts-liberation libnss3 libgbm1 libxss1 libasound2
+    - export CHROME_BIN=/usr/bin/chromium
+    - export PATH=/usr/lib/chromium:$PATH
+  script:
+    - npm ci
+    # The test runner spawns its own web-api server on 8080 + tester API
+    # on 8182. No external services needed (DATABASE_DISABLE=1 in .env).
+    - npm run test-headless
+  artifacts:
+    when: always
+    paths:
+      - /tmp/admin-panel-test.log
+    expire_in: 1 week
+  rules:
+    # Run on every push except tags (which are usually publish-only).
+    - if: '$CI_COMMIT_TAG'
+      when: never
+    - when: on_success
 
 publish:
   stage: publish
   image: node:20-alpine
   dependencies:
     - build
+  needs:
+    - build
+    - test
   script:
     - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
     # --ignore-scripts skips prepublishOnly (which would re-run build-web and

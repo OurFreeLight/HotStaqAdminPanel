@@ -1,12 +1,13 @@
 {
   "name": "@hotstaq/admin-panel",
   "description": "",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "main": "build/index.js",
   "scripts": {
     "start": "hotstaq --hotsite ./HotSite.json --env-file ./.env run --server-type web-api",
-    "dev": "hotstaq --hotsite ./HotSite.json --development-mode run --server-type web-api --web-http-port 8080",
-    "test": "hotstaq --dev --env-file .env run --server-type web-api --web-test",
+    "dev": "hotstaq --hotsite ./HotSite.json --env-file ./.env --development-mode run --server-type web-api --web-http-port 8080",
+    "test": "hotstaq --hotsite ./HotSite.json --dev --env-file .env run --server-type web-api --tester-open-dev-tools --web-test",
+    "test-headless": "hotstaq --hotsite ./HotSite.json --dev --env-file .env run --server-type web-api --tester-headless --tester-disable-gpu-sandbox --tester-disable-dev-shm-usage --web-test",
     "clean-assets": "rm -Rf ./public/hotstaq_modules/@hotstaq/admin-panel/*",
     "build": "tsc --build ./tsconfig.json",
     "build-module": "hotstaq module build",

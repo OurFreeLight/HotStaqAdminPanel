@@ -1,3 +1,4 @@
+# Production / staging mode — needs a real MariaDB.
 HTTP_PORT=3243
 JWT_SECRET_KEY=ja789w5hja9w345h98aw3jh48aw34j898
 MYSQL_ROOT_PASSWORD=jlka7sw47aSD234
@@ -8,3 +9,8 @@ DATABASE_USERNAME=5NKVBAt7OrzrumQyQVs
 DATABASE_PASSWORD=1BBrZbKYRUM7oiMA5oY
 DATABASE_SCHEMA=staqapp
 TESTING_DEVTOOLS=1
+
+# Test mode — no DB needed. Set this to run `npm test` / `npm run test-headless`
+# / `npm run dev` against the in-memory stub routes registered by AppAPI when
+# DATABASE_DISABLE=1. The testbed pages in public/test-*.hott use these.
+# DATABASE_DISABLE=1

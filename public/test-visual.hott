@@ -1,0 +1,56 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// Visual / display-only components: admin-eyebrow-heading and
+	// admin-disclaimer. Cheap render-only smoke tests.
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "visual components testbed",
+			PANEL_NAME: "visual",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">visual components testbed</h3>
+
+	<admin-eyebrow-heading hot-eyebrow="Tag"
+		hot-heading="A heading"
+		hot-subtitle="A short subtitle explaining the page."></admin-eyebrow-heading>
+
+	<admin-disclaimer>This is a disclaimer with default styling. It should render with the .fl-disclaimer surface so the dark-mode contrast fix applies.</admin-disclaimer>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("Visual_EyebrowHeading_Renders", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				var eb = document.querySelector ('.fl-eyebrow-heading, .fl-admin-eyebrow-heading');
+				if (eb == null) return JSON.stringify ({err: 'eyebrow-heading missing'});
+				return JSON.stringify ({
+					hasEyebrow:  eb.textContent.indexOf ('Tag') >= 0,
+					hasHeading:  eb.textContent.indexOf ('A heading') >= 0,
+					hasSubtitle: eb.textContent.indexOf ('subtitle') >= 0
+				});
+			`);
+			await driver.assert (
+				r.indexOf ('"hasEyebrow":true') >= 0
+				&& r.indexOf ('"hasHeading":true') >= 0
+				&& r.indexOf ('"hasSubtitle":true') >= 0,
+				"eyebrow-heading should expose the three text slots. Got: " + r);
+		});
+
+	Hot.CurrentPage.createTestPath ("Visual_Disclaimer_Renders", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				var d = document.querySelector ('.fl-disclaimer, .fl-admin-disclaimer');
+				return JSON.stringify ({ exists: d != null, hasText: d ? d.textContent.indexOf ('disclaimer') >= 0 : false });
+			`);
+			await driver.assert (
+				r.indexOf ('"exists":true') >= 0 && r.indexOf ('"hasText":true') >= 0,
+				"disclaimer should render with the configured text. Got: " + r);
+		});
+*>

@@ -1,0 +1,112 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-form-field testbed. Covers each `hot-control` variant
+	// (text/number/select/textarea/checkbox/email) and the required-marker
+	// + help-text rendering, plus the col wrapper.
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-form-field testbed",
+			PANEL_NAME: "admin-form-field",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-form-field testbed</h3>
+
+	<form id="testForm">
+		<div class="row g-3">
+			<admin-form-field hot-field="text_basic"  hot-label="Text"     hot-col="col-md-4"></admin-form-field>
+			<admin-form-field hot-field="text_req"    hot-label="Required" hot-required="1" hot-col="col-md-4"></admin-form-field>
+			<admin-form-field hot-field="email_basic" hot-label="Email"    hot-type="email" hot-col="col-md-4"></admin-form-field>
+
+			<admin-form-field hot-field="num_basic"   hot-label="Number"   hot-type="number" hot-col="col-md-4"></admin-form-field>
+			<admin-form-field hot-field="num_minmax"  hot-label="Number min/max" hot-type="number" hot-min="0" hot-max="100" hot-step="5" hot-col="col-md-4"></admin-form-field>
+
+			<admin-form-field hot-field="select_basic" hot-label="Select" hot-control="select"
+				hot-options="a:Alpha,b:Bravo,c:Charlie" hot-col="col-md-4"></admin-form-field>
+
+			<admin-form-field hot-field="textarea_basic" hot-label="Textarea" hot-control="textarea"
+				hot-rows="3" hot-col="col-md-12"></admin-form-field>
+
+			<admin-form-field hot-field="check_basic" hot-label="Checkbox" hot-control="checkbox"
+				hot-col="col-md-4"></admin-form-field>
+
+			<admin-form-field hot-field="help_field" hot-label="With help" hot-help="A piece of helper text."
+				hot-col="col-md-4"></admin-form-field>
+		</div>
+	</form>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("FormField_AllControls_Render", async (driver) =>
+		{
+			await driver.wait (2500);
+			const result = await driver.driver.executeScript (`
+				var form = document.getElementById ('testForm');
+				if (form == null) return JSON.stringify ({err: 'testForm missing'});
+				var fields = form.querySelectorAll ('[hot-field]');
+				var byField = {};
+				for (var i = 0; i < fields.length; i++) {
+					var el = fields[i];
+					byField[el.getAttribute ('hot-field')] = el.tagName.toLowerCase () + ':' + (el.type || '');
+				}
+				return JSON.stringify (byField);
+			`);
+			// Check every declared field landed as the expected control.
+			for (const expected of [
+				'"text_basic":"input:text"', '"text_req":"input:text"',
+				'"email_basic":"input:email"', '"num_basic":"input:number"',
+				'"select_basic":"select:select-one"',
+				'"textarea_basic":"textarea:textarea"',
+				'"check_basic":"input:checkbox"'])
+			{
+				await driver.assert (result.indexOf (expected) >= 0,
+					`form-field control missing/wrong: expected ${expected} in ${result}`);
+			}
+		});
+
+	Hot.CurrentPage.createTestPath ("FormField_Required_RendersAsterisk", async (driver) =>
+		{
+			await driver.wait (2500);
+			const result = await driver.driver.executeScript (`
+				var f = document.querySelector ('[hot-field="text_req"]');
+				var label = f ? f.parentElement.querySelector ('label') : null;
+				return JSON.stringify ({ html: label ? label.innerHTML : null });
+			`);
+			await driver.assert (result.indexOf ("text-danger") >= 0 && result.indexOf ("*") >= 0,
+				"required field must show the red asterisk marker. Got: " + result);
+		});
+
+	Hot.CurrentPage.createTestPath ("FormField_Help_RendersHelpText", async (driver) =>
+		{
+			await driver.wait (2500);
+			const result = await driver.driver.executeScript (`
+				var f = document.querySelector ('[hot-field="help_field"]');
+				var help = f ? f.parentElement.querySelector ('.form-text') : null;
+				return JSON.stringify ({ text: help ? help.textContent : null });
+			`);
+			await driver.assert (result.indexOf ("A piece of helper text.") >= 0,
+				"help text not rendered. Got: " + result);
+		});
+
+	Hot.CurrentPage.createTestPath ("FormField_SelectOptions_PopulateFromCsv", async (driver) =>
+		{
+			await driver.wait (2500);
+			const result = await driver.driver.executeScript (`
+				var sel = document.querySelector ('[hot-field="select_basic"]');
+				if (sel == null) return JSON.stringify ({err: 'select missing'});
+				var opts = [];
+				for (var i = 0; i < sel.options.length; i++)
+					opts.push (sel.options[i].value + ':' + sel.options[i].text);
+				return JSON.stringify (opts);
+			`);
+			await driver.assert (
+				result.indexOf ('"a:Alpha"') >= 0
+				&& result.indexOf ('"b:Bravo"') >= 0
+				&& result.indexOf ('"c:Charlie"') >= 0,
+				"select options should parse from hot-options csv. Got: " + result);
+		});
+*>

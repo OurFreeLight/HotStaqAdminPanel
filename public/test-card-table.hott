@@ -1,0 +1,80 @@
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	// admin-card-table testbed. Covers: basic list render with sample
+	// data, empty-state rendering, search-param threading, and the
+	// row click → openForRow handoff (when a row_edit_id is wired).
+	await Hot.include ("@hotstaq/admin-panel/admin-header.hott", {
+			TITLE: "admin-card-table testbed",
+			PANEL_NAME: "admin-card-table",
+			SIDEBAR_ITEMS: []
+		});
+*>
+
+<div class="container" style="padding:1.5rem 1rem;">
+	<h3 class="mb-3">admin-card-table testbed</h3>
+
+	<h5 class="mt-4">BASIC LIST</h5>
+	<admin-card-table id="basicList"
+		hot-title="Items"
+		hot-list_url="/v1/items/list"
+		hot-list_params='{"offset":0,"limit":50}'
+		hot-primary_field="name"
+		hot-subline_field="status"
+		hot-empty_text="No items."
+		hot-loading_text="Loading items…"></admin-card-table>
+
+	<h5 class="mt-4">EMPTY STATE (search that matches nothing)</h5>
+	<admin-card-table id="emptyList"
+		hot-title="Items"
+		hot-list_url="/v1/items/list"
+		hot-list_params='{"search":"xyznomatch","offset":0,"limit":50}'
+		hot-primary_field="name"
+		hot-subline_field="status"
+		hot-empty_text="No items match that search."
+		hot-loading_text="Loading…"></admin-card-table>
+</div>
+
+<*
+	await Hot.import ("@hotstaq/admin-panel");
+	await Hot.include ("@hotstaq/admin-panel/admin-footer.hott");
+
+	Hot.CurrentPage.createTestPath ("CardTable_Basic_RendersFiveRows", async (driver) =>
+		{
+			await driver.wait (3500);
+			const result = await driver.driver.executeScript (`
+				var list = document.getElementById ('basicList');
+				if (list == null) return JSON.stringify ({err: 'basicList missing'});
+				var rows = list.querySelectorAll ('.fl-card-list > .fl-card-row');
+				return JSON.stringify ({ count: rows.length });
+			`);
+			await driver.assert (result.indexOf ('"count":5') >= 0,
+				"basicList expected 5 rows from stub /v1/items/list. Got: " + result);
+		});
+
+	Hot.CurrentPage.createTestPath ("CardTable_EmptySearch_RendersEmptyMessage", async (driver) =>
+		{
+			await driver.wait (3500);
+			const result = await driver.driver.executeScript (`
+				var list = document.getElementById ('emptyList');
+				if (list == null) return JSON.stringify ({err: 'emptyList missing'});
+				var emptyMsg = list.querySelector ('.text-muted');
+				return JSON.stringify ({
+					hasEmpty: emptyMsg != null,
+					text: emptyMsg ? emptyMsg.textContent.trim () : null
+				});
+			`);
+			await driver.assert (result.indexOf ("No items match") >= 0,
+				"emptyList should render the empty_text when stub returns 0 rows. Got: " + result);
+		});
+
+	Hot.CurrentPage.createTestPath ("CardTable_ExposesRefreshList", async (driver) =>
+		{
+			await driver.wait (3500);
+			const result = await driver.driver.executeScript (`
+				var list = document.getElementById ('basicList');
+				return JSON.stringify ({ hasRefresh: list && typeof list.refreshList === 'function' });
+			`);
+			await driver.assert (result.indexOf ('"hasRefresh":true') >= 0,
+				"basicList should expose .refreshList() for admin-row-edit to call after save/delete. Got: " + result);
+		});
+*>
