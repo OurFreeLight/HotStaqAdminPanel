@@ -1,5 +1,5 @@
 import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
-import { collectFieldValues, resetFields } from "./field-io";
+import { collectFieldValues, resetFields, splitFilesFromValues } from "./field-io";
 
 /**
  * Self-contained inline add form. Replaces the modal opened by
@@ -42,6 +42,10 @@ export class AdminAddPanel extends HotComponent
 	start_open: string;
 	/** What to run when the user clicks Save. Receives a values object built from hot-field inputs. Return false to keep the panel open. */
 	onsave: (values: any) => Promise<boolean | void>;
+	/** Optional multipart upload endpoint (e.g. /v1/agreements/create). When set + the form has admin-file-upload fields, files are POSTed here first and the resulting uploadId is folded into the values object as values.hotstaq.uploads.uploadId before onsave fires. */
+	upload_url: string;
+	/** JWT bearer for the upload-phase POST (file upload uses the same auth as the normal save). */
+	jwt: string;
 
 	protected panelId: string;
 	protected formId: string;
@@ -58,6 +62,8 @@ export class AdminAddPanel extends HotComponent
 		this.add_text        = "+ Add";
 		this.start_open      = "0";
 		this.onsave          = null;
+		this.upload_url      = "";
+		this.jwt             = "";
 	}
 
 	/**
@@ -100,7 +106,42 @@ export class AdminAddPanel extends HotComponent
 			submitBtn.addEventListener ("click", async (e) =>
 				{
 					e.preventDefault ();
-					const values = self.collectFieldValues (root);
+					const collected = self.collectFieldValues (root);
+					// If there are admin-file-upload fields, do the multipart
+					// upload phase before onsave fires. Onsave only sees the
+					// JSON-shaped values + a hotstaq.uploads.uploadId the
+					// server will pair with the staged upload.
+					const split = splitFilesFromValues (collected);
+					for (const k of split.cleared) split.values[k] = null;
+					let values = split.values;
+					if (Object.keys (split.files).length > 0)
+					{
+						if (!self.upload_url)
+						{
+							console.error ("admin-add-panel: file fields present but hot-upload_url is not set on", self.name);
+							submitBtn.disabled = false;
+							return;
+						}
+						try
+						{
+							const uploadId = await self.uploadFiles (split.files);
+							if (uploadId == null)
+							{
+								console.error ("admin-add-panel: upload returned no uploadId");
+								submitBtn.disabled = false;
+								return;
+							}
+							values.hotstaq = values.hotstaq || {};
+							values.hotstaq.uploads = values.hotstaq.uploads || {};
+							values.hotstaq.uploads.uploadId = uploadId;
+						}
+						catch (ex)
+						{
+							console.error ("admin-add-panel: file upload failed:", ex);
+							submitBtn.disabled = false;
+							return;
+						}
+					}
 					submitBtn.disabled = true;
 					try
 					{
@@ -156,6 +197,26 @@ export class AdminAddPanel extends HotComponent
 	protected resetFields (root: HTMLElement): void
 	{
 		resetFields (root);
+	}
+
+	/**
+	 * Multipart upload phase. POSTs files to upload_url with the magic
+	 * HotStaqUpload header. Server returns an uploadId we then echo back
+	 * in the JSON save body so the route can pair them.
+	 */
+	protected async uploadFiles (files: { [k: string]: any }): Promise<string | null>
+	{
+		const form = new FormData ();
+		for (const k of Object.keys (files)) form.append (k, files[k]);
+		const headers: any = { "HotStaqUpload": "true" };
+		if (this.jwt) headers["Authorization"] = "Bearer " + this.jwt;
+		const res = await fetch (this.upload_url, { method: "POST", headers: headers, body: form });
+		if (!res.ok) throw new Error ("multipart upload HTTP " + res.status);
+		const json: any = await res.json ();
+		if (json && json.error) throw new Error (json.error);
+		if (json && json.hotstaq && json.hotstaq.uploads && json.hotstaq.uploads.uploadId)
+			return (json.hotstaq.uploads.uploadId);
+		return (null);
 	}
 
 	protected collapsePanel (): void

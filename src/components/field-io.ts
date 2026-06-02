@@ -188,6 +188,13 @@ export function collectField (elm: Element): any
 	if (elm.classList.contains ("fl-admin-approval-panel"))
 		return (SKIP_FIELD);
 
+	// admin-file-upload returns FILE_MARKER objects that the host save
+	// handler unpacks into a multipart upload. See collectFieldValuesWithFiles
+	// below for the host-side helper that splits these out of the JSON
+	// payload before the save POST.
+	if (elm.classList.contains ("fl-admin-file-upload"))
+		return (fileUploadRead (elm));
+
 	if (elm instanceof HTMLInputElement)
 	{
 		if (elm.type === "checkbox")     return (elm.checked);
@@ -222,6 +229,12 @@ export function populateField (elm: Element, val: any): void
 	{
 		// Self-managing — admin-approval-panel loads its own state from
 		// its hot-id attribute on mount, and posts directly on change.
+		return;
+	}
+
+	if (elm.classList.contains ("fl-admin-file-upload"))
+	{
+		fileUploadWrite (elm, val);
 		return;
 	}
 
@@ -282,6 +295,12 @@ export function resetField (elm: Element): void
 	if (elm.classList.contains ("fl-admin-approval-panel"))
 		return;
 
+	if (elm.classList.contains ("fl-admin-file-upload"))
+	{
+		fileUploadReset (elm);
+		return;
+	}
+
 	if (elm instanceof HTMLInputElement)
 	{
 		if (elm.type === "checkbox") elm.checked = false;
@@ -290,6 +309,101 @@ export function resetField (elm: Element): void
 	}
 	if (elm instanceof HTMLSelectElement)   { elm.selectedIndex = 0; return; }
 	if (elm instanceof HTMLTextAreaElement) { elm.value = ""; return; }
+}
+
+/**
+ * Marker returned by collectField for file-upload wrappers. The host save
+ * handler uses splitFilesFromValues to pull these out before posting.
+ */
+export const FILE_FIELD_MARKER = "__fl_file_field__";
+
+/** Read the current selection / clear flag off an admin-file-upload wrapper. */
+function fileUploadRead (wrapper: HTMLElement): any
+{
+	const file: any = (wrapper as any).__afuFile;
+	const cleared: boolean = (wrapper as any).__afuCleared === true;
+	if (file != null)
+		return ({ [FILE_FIELD_MARKER]: true, file: file, cleared: false });
+	if (cleared)
+		return ({ [FILE_FIELD_MARKER]: true, file: null, cleared: true });
+	return (SKIP_FIELD);
+}
+
+/** Update the "current file" link from the populated value (entity id or {id}). */
+function fileUploadWrite (wrapper: HTMLElement, val: any): void
+{
+	(wrapper as any).__afuFile = null;
+	(wrapper as any).__afuCleared = false;
+	const input = wrapper.querySelector (".fl-afu-input") as HTMLInputElement | null;
+	if (input != null) input.value = "";
+	const status = wrapper.querySelector (".fl-afu-status") as HTMLElement | null;
+	if (status != null) status.textContent = "";
+
+	const link = wrapper.querySelector (".fl-afu-link") as HTMLAnchorElement | null;
+	if (link == null) return;
+	const dlUrl = wrapper.getAttribute ("data-download-url") || "";
+	const idParam = wrapper.getAttribute ("data-id-param") || "id";
+
+	// val can be the entity's id (string) or the full row object (so we
+	// can read row.id). The host populateFields passes obj[field] which
+	// for file_url-style schemas is usually a string already; for the
+	// "always re-derive from row id" path the host can pass {id: row.id}.
+	let id: string = "";
+	if (typeof val === "string") id = val;
+	else if (val != null && typeof val === "object" && val.id) id = String (val.id);
+
+	if (dlUrl !== "" && id !== "")
+	{
+		link.href = dlUrl + (dlUrl.indexOf ("?") >= 0 ? "&" : "?") + idParam + "=" + encodeURIComponent (id);
+		link.classList.remove ("d-none");
+	}
+	else
+	{
+		link.href = "";
+		link.classList.add ("d-none");
+	}
+}
+
+function fileUploadReset (wrapper: HTMLElement): void
+{
+	(wrapper as any).__afuFile = null;
+	(wrapper as any).__afuCleared = false;
+	const input = wrapper.querySelector (".fl-afu-input") as HTMLInputElement | null;
+	if (input != null) input.value = "";
+	const link = wrapper.querySelector (".fl-afu-link") as HTMLAnchorElement | null;
+	if (link != null) { link.classList.add ("d-none"); link.href = ""; }
+	const status = wrapper.querySelector (".fl-afu-status") as HTMLElement | null;
+	if (status != null) status.textContent = "";
+}
+
+/**
+ * Walk a collected-values object and pull out file markers. Returns
+ *   { values, files, cleared }
+ * where:
+ *  - values   has the file markers removed (caller posts this as JSON)
+ *  - files    is the multipart map { fieldName: File } for the upload phase
+ *  - cleared  lists field names the user explicitly cleared (so the save
+ *             handler can decide whether to send a sentinel like null)
+ */
+export function splitFilesFromValues (collected: any): { values: any, files: { [k: string]: any }, cleared: string[] }
+{
+	const values: any = {};
+	const files: { [k: string]: any } = {};
+	const cleared: string[] = [];
+	if (collected == null) return ({ values, files, cleared });
+	for (const k of Object.keys (collected))
+	{
+		const v = collected[k];
+		if (v != null && typeof v === "object" && v[FILE_FIELD_MARKER] === true)
+		{
+			if (v.file != null) files[k] = v.file;
+			if (v.cleared === true) cleared.push (k);
+			// Do NOT copy v into values — the JSON payload should not carry the marker.
+			continue;
+		}
+		values[k] = v;
+	}
+	return ({ values, files, cleared });
 }
 
 /**

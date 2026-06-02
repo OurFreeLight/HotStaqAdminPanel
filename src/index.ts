@@ -24,6 +24,11 @@ import { AdminRichText } from "./components/admin-rich-text";
 import { AdminRelatedPicker } from "./components/admin-related-picker";
 import { AdminApprovalPanel } from "./components/admin-approval-panel";
 
+// admin-panel 0.5.6 — multi-section layout + file upload field.
+import { AdminTabPage } from "./components/admin-tab-page";
+import { AdminTab } from "./components/admin-tab";
+import { AdminFileUpload } from "./components/admin-file-upload";
+
 export {
 		AdminButton,
 		AdminDropdown,
@@ -42,5 +47,8 @@ export {
 		AdminRowEdit,
 		AdminRichText,
 		AdminRelatedPicker,
-		AdminApprovalPanel
+		AdminApprovalPanel,
+		AdminTabPage,
+		AdminTab,
+		AdminFileUpload
 	};

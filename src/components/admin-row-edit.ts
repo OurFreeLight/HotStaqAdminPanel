@@ -1,5 +1,5 @@
 import { HotStaq, Hot, HotAPI, HotComponent, HotComponentOutput } from "hotstaq";
-import { populateFields, collectFieldValues, resetFields } from "./field-io";
+import { populateFields, collectFieldValues, resetFields, splitFilesFromValues } from "./field-io";
 
 /**
  * Inline accordion edit form. Pairs with <admin-card-table> via the
@@ -215,6 +215,14 @@ export class AdminRowEdit extends HotComponent
 				el.style.display = ro ? "none" : "";
 				continue;
 			}
+			if (el.classList.contains ("fl-admin-file-upload"))
+			{
+				const input = el.querySelector (".fl-afu-input") as HTMLInputElement | null;
+				if (input != null) { input.disabled = ro; input.style.display = ro ? "none" : ""; }
+				const clear = el.querySelector (".fl-afu-clear") as HTMLElement | null;
+				if (clear != null) clear.style.display = ro ? "none" : "";
+				continue;
+			}
 			if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement)
 				el.disabled = ro;
 		}
@@ -312,17 +320,37 @@ export class AdminRowEdit extends HotComponent
 		const root = document.getElementById (this.name);
 		if (root == null || !this.currentId) return;
 
-		const values = this.collectValues (root);
-		values.id = this.currentId;
-		const body: any = this.payload_key ? { [this.payload_key]: values } : values;
+		const collected = this.collectValues (root);
+		const split = splitFilesFromValues (collected);
+		split.values.id = this.currentId;
+		// Cleared fields: explicitly send `null` so the server knows to drop
+		// the existing attachment. Without this the field would be omitted
+		// and most edit-merge implementations preserve the old value.
+		for (const k of split.cleared) split.values[k] = null;
+
+		const body: any = this.payload_key ? { [this.payload_key]: split.values } : split.values;
+		const fileCount = Object.keys (split.files).length;
 
 		const btn = root.querySelector (".fl-row-edit-save") as HTMLButtonElement | null;
 		if (btn) btn.disabled = true;
 		try
 		{
+			let res: Response;
+			if (fileCount > 0)
+			{
+				// Two-phase: multipart upload first, then JSON save with the
+				// resulting uploadId echoed back in `hotstaq.uploads.uploadId`.
+				// Mirrors hotstaq/src/Hot.ts:httpRequest's FILE_UPLOAD flow so
+				// the server-side route logic doesn't need to change.
+				const uploadId = await this.uploadFiles (split.files);
+				if (uploadId == null) { this.showError ("Save failed: file upload returned no uploadId."); return; }
+				body.hotstaq = body.hotstaq || {};
+				body.hotstaq.uploads = body.hotstaq.uploads || {};
+				body.hotstaq.uploads.uploadId = uploadId;
+			}
 			const headers: any = { "Content-Type": "application/json" };
 			if (this.jwt) headers["Authorization"] = "Bearer " + this.jwt;
-			const res = await fetch (this.save_url, {
+			res = await fetch (this.save_url, {
 				method: "POST", headers: headers, body: JSON.stringify (body)
 			});
 			if (!res.ok)
@@ -343,6 +371,26 @@ export class AdminRowEdit extends HotComponent
 		{
 			if (btn) btn.disabled = false;
 		}
+	}
+
+	/**
+	 * Phase 1 of a FILE_UPLOAD save: POST the multipart form to save_url
+	 * with the magic HotStaqUpload header. The server stashes the file and
+	 * returns an uploadId we then echo back in the JSON phase.
+	 */
+	protected async uploadFiles (files: { [k: string]: any }): Promise<string | null>
+	{
+		const form = new FormData ();
+		for (const k of Object.keys (files)) form.append (k, files[k]);
+		const headers: any = { "HotStaqUpload": "true" };
+		if (this.jwt) headers["Authorization"] = "Bearer " + this.jwt;
+		const res = await fetch (this.save_url, { method: "POST", headers: headers, body: form });
+		if (!res.ok) throw new Error ("multipart upload HTTP " + res.status);
+		const json: any = await res.json ();
+		if (json && json.error) throw new Error (json.error);
+		if (json && json.hotstaq && json.hotstaq.uploads && json.hotstaq.uploads.uploadId)
+			return (json.hotstaq.uploads.uploadId);
+		return (null);
 	}
 
 	protected async handleDelete (): Promise<void>

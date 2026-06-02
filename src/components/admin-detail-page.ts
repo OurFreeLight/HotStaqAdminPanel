@@ -299,6 +299,14 @@ export class AdminDetailPage extends HotComponent
 				el.style.display = ro ? "none" : "";
 				continue;
 			}
+			if (el.classList.contains ("fl-admin-file-upload"))
+			{
+				const input = el.querySelector (".fl-afu-input") as HTMLInputElement | null;
+				if (input != null) { input.disabled = ro; input.style.display = ro ? "none" : ""; }
+				const clear = el.querySelector (".fl-afu-clear") as HTMLElement | null;
+				if (clear != null) clear.style.display = ro ? "none" : "";
+				continue;
+			}
 			if (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement)
 				el.disabled = ro;
 		}
