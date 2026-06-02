@@ -44,15 +44,24 @@ test:
     - apt-get install -y --no-install-recommends chromium chromium-driver xvfb fonts-liberation libnss3 libgbm1 libxss1 libasound2
     - export CHROME_BIN=/usr/bin/chromium
     - export PATH=/usr/lib/chromium:$PATH
+    # .env is gitignored; synthesize a test-mode one. DATABASE_DISABLE=1
+    # triggers the in-memory stub-route path in src/AppAPI.ts so the
+    # testbed pages don't need MariaDB.
+    - |
+      cat > .env <<'ENVEOF'
+      DATABASE_DISABLE=1
+      HTTP_PORT=8080
+      JWT_SECRET_KEY=ci-only-not-for-prod-jwt-secret
+      ENVEOF
   script:
     - npm ci
     # The test runner spawns its own web-api server on 8080 + tester API
     # on 8182. No external services needed (DATABASE_DISABLE=1 in .env).
-    - npm run test-headless
+    - npm run test-headless 2>&1 | tee test-output.log
   artifacts:
     when: always
     paths:
-      - /tmp/admin-panel-test.log
+      - test-output.log
     expire_in: 1 week
   rules:
     # Run on every push except tags (which are usually publish-only).
