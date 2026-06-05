@@ -174,6 +174,17 @@ export class AdminRowEdit extends HotComponent
 		this.placeUnderAnchor (root, anchor);
 		this.expand (root);
 		this.clearFeedback (root);
+
+		// Notify integrations (e.g. an embedded comments panel) that a row's
+		// editor opened, with the row id, so they can mount per-row content.
+		try
+		{
+			root.dispatchEvent (new CustomEvent ("fl-row-edit-open", {
+					bubbles: true,
+					detail: { id: this.currentId, rowData: rowData }
+				}));
+		}
+		catch (ex) { /* CustomEvent unsupported — integrations simply won't fire */ }
 	}
 
 	/**
