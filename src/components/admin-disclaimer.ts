@@ -25,6 +25,12 @@ export class AdminDisclaimer extends HotComponent
 		this.tag     = "admin-disclaimer";
 		this.heading = "";
 		this.accent  = "#4f46e5";
+
+		// The body is rendered via ${this.inner} in output(), so tell HotStaq not
+		// to ALSO re-append the original element children — otherwise an inline
+		// <strong>/<a>/<em> in the disclaimer text renders twice (once in the
+		// text, once as a stray node after the card). Requires hotstaq >= 0.9.31.
+		this.placeChildren = false;
 	}
 
 	output (): string | HotComponentOutput[]

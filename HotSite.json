@@ -114,7 +114,8 @@
 				"url:/test-tab-page -> TabPage_RendersAllTabs",
 				"url:/test-tab-page -> TabPage_FirstTabActiveByDefault",
 				"url:/test-visual -> Visual_EyebrowHeading_Renders",
-				"url:/test-visual -> Visual_Disclaimer_Renders"
+				"url:/test-visual -> Visual_Disclaimer_Renders",
+				"url:/test-visual -> Visual_Disclaimer_InlineElementNotDuplicated"
 			]
 		}
 	},

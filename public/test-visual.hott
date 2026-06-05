@@ -17,6 +17,12 @@
 		hot-subtitle="A short subtitle explaining the page."></admin-eyebrow-heading>
 
 	<admin-disclaimer>This is a disclaimer with default styling. It should render with the .fl-disclaimer surface so the dark-mode contrast fix applies.</admin-disclaimer>
+
+	<!-- Regression: a disclaimer body with an inline element (<strong>). The
+	     component renders its body via ${this.inner}; with placeChildren left at
+	     the default, HotStaq ALSO re-appended the <strong> as a stray node, so
+	     "INLINEMARK" appeared twice. placeChildren=false must render it once. -->
+	<admin-disclaimer id="inlineDisclaimer">They do <strong>INLINEMARK</strong> grant influence.</admin-disclaimer>
 </div>
 
 <*
@@ -52,5 +58,22 @@
 			await driver.assert (
 				r.indexOf ('"exists":true') >= 0 && r.indexOf ('"hasText":true') >= 0,
 				"disclaimer should render with the configured text. Got: " + r);
+		});
+
+	Hot.CurrentPage.createTestPath ("Visual_Disclaimer_InlineElementNotDuplicated", async (driver) =>
+		{
+			await driver.wait (2500);
+			const r = await driver.driver.executeScript (`
+				// Count how many times the inline-element marker appears anywhere
+				// in the rendered disclaimers. The bug rendered it twice (once in
+				// the body, once as a stray re-appended <strong>).
+				var strongs = Array.prototype.filter.call (
+					document.querySelectorAll ('strong'),
+					function (s) { return s.textContent.indexOf ('INLINEMARK') >= 0; });
+				return JSON.stringify ({ markerCount: strongs.length });
+			`);
+			await driver.assert (
+				r.indexOf ('"markerCount":1') >= 0,
+				"an inline <strong> in a disclaimer body must render exactly once (placeChildren=false). Got: " + r);
 		});
 *>
